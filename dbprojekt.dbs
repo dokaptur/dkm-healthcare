@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="dkm-healthcare" id="Project46912" database="PostgreSQL" >
+	<schema name="dkm-healthcare" schemaname="dkm-healthcare" defo="y" >
+		<table name="lekarz_placowki" >
+			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_placowka" type="numeric" jt="2" mandatory="y" />
+			<index name="idx_lekarz_placowki" unique="PRIMARY_KEY" >
+				<column name="id_lekarz" />
+				<column name="id_placowka" />
+			</index>
+			<index name="pk_lekarz_placowki" unique="UNIQUE" >
+				<column name="id_placowka" />
+			</index>
+			<index name="idx_lekarz_placowki_0" unique="NORMAL" >
+				<column name="id_lekarz" />
+			</index>
+			<fk name="fk_lekarz_placowki" to_schema="dkm-healthcare" to_table="placowki" >
+				<fk_column name="id_placowka" pk="id_placowka" />
+			</fk>
+			<fk name="fk_lekarz_placowki_0" to_schema="dkm-healthcare" to_table="lekarze" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
+			</fk>
+		</table>
+		<table name="lekarz_specjalizacja" >
+			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_spec" type="integer" jt="4" mandatory="y" />
+			<index name="idx_lekarz_specjalizacja" unique="PRIMARY_KEY" >
+				<column name="id_lekarz" />
+				<column name="id_spec" />
+			</index>
+			<index name="idx_lekarz_specjalizacja_0" unique="NORMAL" >
+				<column name="id_lekarz" />
+			</index>
+			<index name="idx_lekarz_specjalizacja_1" unique="NORMAL" >
+				<column name="id_spec" />
+			</index>
+			<fk name="fk_lekarz_specjalizacja" to_schema="dkm-healthcare" to_table="lekarze" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
+			</fk>
+			<fk name="fk_lekarz_specjalizacja_0" to_schema="dkm-healthcare" to_table="specjalizacje" >
+				<fk_column name="id_spec" pk="id_spec" />
+			</fk>
+		</table>
+		<table name="lekarze" >
+			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="prawa" type="bool" jt="-7" mandatory="y" />
+			<index name="pk_lekarze" unique="PRIMARY_KEY" >
+				<column name="id_lekarz" />
+			</index>
+			<fk name="fk_lekarze" to_schema="dkm-healthcare" to_table="osoby" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
+			</fk>
+		</table>
+		<table name="osoby" >
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="haslo" type="char" length="32" jt="1" mandatory="y" />
+			<column name="imie" type="varchar" length="20" jt="12" mandatory="y" />
+			<column name="nazwisko" type="varchar" length="50" jt="12" mandatory="y" />
+			<column name="data_urodzenia" type="date" jt="91" mandatory="y" />
+			<column name="adres" type="text" jt="12" />
+			<column name="id_pacjent" type="char" length="12" jt="1" />
+			<column name="id_aptekarz" type="char" length="12" jt="1" />
+			<column name="id_lekarz" type="char" length="12" jt="1" />
+			<column name="id_firma" type="numeric" jt="2" >
+				<comment><![CDATA[samsie, znaczy sam sie ubezpiecza]]></comment>
+			</column>
+			<column name="email" type="text" jt="12" />
+			<column name="admin" type="bool" jt="-7" mandatory="y" >
+				<defo>&#039;false&#039;</defo>
+			</column>
+			<index name="pk_osoby" unique="PRIMARY_KEY" >
+				<column name="pesel" />
+			</index>
+			<index name="pk_osoby_0" unique="UNIQUE" >
+				<column name="id_pacjent" />
+			</index>
+			<index name="pk_osoby_1" unique="UNIQUE" >
+				<column name="id_lekarz" />
+			</index>
+			<index name="idx_osoby" unique="NORMAL" >
+				<column name="id_firma" />
+			</index>
+			<fk name="fk_osoby" to_schema="dkm-healthcare" to_table="pracodawcy" >
+				<fk_column name="id_firma" pk="id_firma" />
+			</fk>
+		</table>
+		<table name="pacjenci_specjalisci" >
+			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<index name="idx_pacjenci_specjalisci" unique="PRIMARY_KEY" >
+				<column name="id_pacjent" />
+				<column name="id_lekarz" />
+			</index>
+			<index name="pk_pacjenci_specjalisci" unique="UNIQUE" >
+				<column name="id_pacjent" />
+			</index>
+			<index name="idx_pacjenci_specjalisci_0" unique="UNIQUE" >
+				<column name="id_lekarz" />
+			</index>
+			<fk name="fk_pacjenci_specjalisci" to_schema="dkm-healthcare" to_table="lekarze" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
+			</fk>
+			<fk name="fk_pacjenci_specjalisci_0" to_schema="dkm-healthcare" to_table="pacjent" >
+				<fk_column name="id_pacjent" pk="id_pacjent" />
+			</fk>
+		</table>
+		<table name="pacjent" >
+			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
+			<column name="lekarz_rodzinny" type="char" length="12" jt="1" mandatory="y" />
+			<index name="pk_pacjent" unique="PRIMARY_KEY" >
+				<column name="id_pacjent" />
+			</index>
+			<index name="idx_pacjent" unique="NORMAL" >
+				<column name="lekarz_rodzinny" />
+			</index>
+			<fk name="fk_pacjent" to_schema="dkm-healthcare" to_table="osoby" >
+				<fk_column name="id_pacjent" pk="id_pacjent" />
+			</fk>
+			<fk name="fk_pacjent_0" to_schema="dkm-healthcare" to_table="lekarze" >
+				<fk_column name="lekarz_rodzinny" pk="id_lekarz" />
+			</fk>
+		</table>
+		<table name="placowki" >
+			<column name="id_placowka" type="numeric" jt="2" mandatory="y" />
+			<column name="typ" type="text" jt="12" mandatory="y" />
+			<column name="nazwa" type="text" jt="12" mandatory="y" />
+			<column name="adres" type="text" jt="12" mandatory="y" />
+			<column name="miasto" type="text" jt="12" mandatory="y" />
+			<column name="nr_tel" type="numeric" jt="2" mandatory="y" />
+			<index name="pk_placowki" unique="PRIMARY_KEY" >
+				<column name="id_placowka" />
+			</index>
+			<constraint name="typ_check" >
+				<string>typ in (&#039;poradnia&#039;, &#039;szpital&#039;, &#039;przychodnia&#039;)</string>
+			</constraint>
+		</table>
+		<table name="placowki_zabiegi" >
+			<column name="id_placowka" type="numeric" jt="2" mandatory="y" />
+			<column name="id_zabieg" type="integer" jt="4" mandatory="y" />
+			<index name="idx_placowki_zabiegi" unique="PRIMARY_KEY" >
+				<column name="id_placowka" />
+				<column name="id_zabieg" />
+			</index>
+			<index name="idx_placowki_zabiegi_0" unique="NORMAL" >
+				<column name="id_placowka" />
+			</index>
+			<index name="idx_placowki_zabiegi_1" unique="NORMAL" >
+				<column name="id_zabieg" />
+			</index>
+			<fk name="fk_placowki_zabiegi" to_schema="dkm-healthcare" to_table="placowki" >
+				<fk_column name="id_placowka" pk="id_placowka" />
+			</fk>
+			<fk name="fk_placowki_zabiegi_0" to_schema="dkm-healthcare" to_table="zabiegi" >
+				<fk_column name="id_zabieg" pk="id_zabieg" />
+			</fk>
+		</table>
+		<table name="pracodawcy" >
+			<column name="id_firma" type="numeric" jt="2" mandatory="y" >
+				<comment><![CDATA[samsie=000000000000000000000000000000]]></comment>
+			</column>
+			<column name="adres" type="text" jt="12" mandatory="y" />
+			<column name="haslo" type="numeric" length="32" jt="2" mandatory="y" />
+			<column name="email" type="text" jt="12" />
+			<index name="pk_pracodawcy" unique="PRIMARY_KEY" >
+				<column name="id_firma" />
+			</index>
+		</table>
+		<table name="recepty" >
+			<column name="numer" type="numeric" jt="2" mandatory="y" />
+			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="zrealizowana_przez" type="char" length="12" jt="1" />
+			<column name="lek" type="text" jt="12" mandatory="y" />
+			<index name="pk_recepty" unique="PRIMARY_KEY" >
+				<column name="numer" />
+			</index>
+			<index name="idx_recepty" unique="NORMAL" >
+				<column name="id_lekarz" />
+			</index>
+			<index name="idx_recepty_0" unique="NORMAL" >
+				<column name="id_pacjent" />
+			</index>
+			<fk name="fk_recepty" to_schema="dkm-healthcare" to_table="lekarze" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
+			</fk>
+			<fk name="fk_recepty_0" to_schema="dkm-healthcare" to_table="pacjent" >
+				<fk_column name="id_pacjent" pk="id_pacjent" />
+			</fk>
+		</table>
+		<table name="skierowania" >
+			<column name="numer" type="numeric" jt="2" mandatory="y" />
+			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_zabieg" type="integer" jt="4" mandatory="y" />
+			<column name="zrealizowany" type="bool" jt="-7" mandatory="y" >
+				<defo>&#039;false&#039;</defo>
+			</column>
+			<index name="pk_skierowania" unique="PRIMARY_KEY" >
+				<column name="numer" />
+			</index>
+			<index name="idx_skierowania" unique="NORMAL" >
+				<column name="id_pacjent" />
+			</index>
+			<index name="idx_skierowania_0" unique="NORMAL" >
+				<column name="id_lekarz" />
+			</index>
+			<index name="idx_skierowania_1" unique="NORMAL" >
+				<column name="id_zabieg" />
+			</index>
+			<fk name="fk_skierowania" to_schema="dkm-healthcare" to_table="pacjent" >
+				<fk_column name="id_pacjent" pk="id_pacjent" />
+			</fk>
+			<fk name="fk_skierowania_0" to_schema="dkm-healthcare" to_table="lekarze" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
+			</fk>
+			<fk name="fk_skierowania_1" to_schema="dkm-healthcare" to_table="zabiegi" >
+				<fk_column name="id_zabieg" pk="id_zabieg" />
+			</fk>
+		</table>
+		<table name="specjalizacje" >
+			<column name="nazwa" type="text" jt="12" mandatory="y" />
+			<column name="id_spec" type="integer" jt="4" mandatory="y" />
+			<index name="pk_specjalizacje" unique="PRIMARY_KEY" >
+				<column name="id_spec" />
+			</index>
+		</table>
+		<table name="ubezpieczenia" >
+			<column name="id_ub" type="numeric" jt="2" mandatory="y" />
+			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_firma" type="numeric" jt="2" />
+			<column name="od" type="date" jt="91" mandatory="y" >
+				<defo>&#039;current_date&#039;</defo>
+			</column>
+			<column name="do" type="date" jt="91" mandatory="y" />
+			<index name="pk_ubezpieczenia" unique="PRIMARY_KEY" >
+				<column name="id_ub" />
+			</index>
+			<index name="idx_ubezpieczenia" unique="NORMAL" >
+				<column name="id_firma" />
+			</index>
+			<index name="idx_ubezpieczenia_0" unique="NORMAL" >
+				<column name="id_pacjent" />
+			</index>
+			<fk name="fk_ubezpieczenia" to_schema="dkm-healthcare" to_table="pracodawcy" >
+				<fk_column name="id_firma" pk="id_firma" />
+			</fk>
+			<fk name="fk_ubezpieczenia_0" to_schema="dkm-healthcare" to_table="pacjent" >
+				<fk_column name="id_pacjent" pk="id_pacjent" />
+			</fk>
+		</table>
+		<table name="zabiegi" >
+			<column name="id_zabieg" type="integer" jt="4" mandatory="y" />
+			<column name="nazwa" type="text" jt="12" mandatory="y" />
+			<index name="pk_zabiegi" unique="PRIMARY_KEY" >
+				<column name="id_zabieg" />
+			</index>
+		</table>
+	</schema>
+	<layout id="Layout46916" name="dkm-healthcare" show_relation_columns="y" >
+		<entity schema="dkm-healthcare" name="pacjenci_specjalisci" color="a8c4ef" x="435" y="300" />
+		<entity schema="dkm-healthcare" name="specjalizacje" color="a8c4ef" x="555" y="675" />
+		<entity schema="dkm-healthcare" name="lekarz_specjalizacja" color="a8c4ef" x="345" y="630" />
+		<entity schema="dkm-healthcare" name="zabiegi" color="a8c4ef" x="1095" y="105" />
+		<entity schema="dkm-healthcare" name="placowki_zabiegi" color="a8c4ef" x="1260" y="90" />
+		<entity schema="dkm-healthcare" name="placowki" color="a8c4ef" x="1125" y="225" />
+		<entity schema="dkm-healthcare" name="lekarz_placowki" color="a8c4ef" x="855" y="315" />
+		<entity schema="dkm-healthcare" name="lekarze" color="a8c4ef" x="255" y="420" />
+		<entity schema="dkm-healthcare" name="skierowania" color="a8c4ef" x="420" y="435" />
+		<entity schema="dkm-healthcare" name="recepty" color="a8c4ef" x="780" y="525" />
+		<entity schema="dkm-healthcare" name="pracodawcy" color="a8c4ef" x="60" y="600" />
+		<entity schema="dkm-healthcare" name="ubezpieczenia" color="a8c4ef" x="810" y="45" />
+		<entity schema="dkm-healthcare" name="pacjent" color="a8c4ef" x="495" y="105" />
+		<entity schema="dkm-healthcare" name="osoby" color="a8c4ef" x="45" y="120" />
+	</layout>
+</project>
