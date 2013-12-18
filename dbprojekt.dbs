@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project name="dkm-healthcare" id="Project46912" database="PostgreSQL" >
 	<schema name="dkm-healthcare" schemaname="dkm-healthcare" defo="y" >
+		<table name="aptekarze" />
 		<table name="lekarz_placowki" >
-			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
 			<column name="id_placowka" type="numeric" jt="2" mandatory="y" />
 			<index name="idx_lekarz_placowki" unique="PRIMARY_KEY" >
 				<column name="id_lekarz" />
@@ -14,15 +15,15 @@
 			<index name="idx_lekarz_placowki_0" unique="NORMAL" >
 				<column name="id_lekarz" />
 			</index>
-			<fk name="fk_lekarz_placowki" to_schema="dkm-healthcare" to_table="placowki" >
+			<fk name="fk_lekarz_placowki" to_schema="dkm-healthcare" to_table="placowki" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_placowka" pk="id_placowka" />
 			</fk>
-			<fk name="fk_lekarz_placowki_0" to_schema="dkm-healthcare" to_table="lekarze" >
+			<fk name="fk_lekarz_placowki_0" to_schema="dkm-healthcare" to_table="lekarze" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_lekarz" pk="id_lekarz" />
 			</fk>
 		</table>
 		<table name="lekarz_specjalizacja" >
-			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
 			<column name="id_spec" type="integer" jt="4" mandatory="y" />
 			<index name="idx_lekarz_specjalizacja" unique="PRIMARY_KEY" >
 				<column name="id_lekarz" />
@@ -34,92 +35,94 @@
 			<index name="idx_lekarz_specjalizacja_1" unique="NORMAL" >
 				<column name="id_spec" />
 			</index>
-			<fk name="fk_lekarz_specjalizacja" to_schema="dkm-healthcare" to_table="lekarze" >
-				<fk_column name="id_lekarz" pk="id_lekarz" />
-			</fk>
-			<fk name="fk_lekarz_specjalizacja_0" to_schema="dkm-healthcare" to_table="specjalizacje" >
+			<fk name="fk_lekarz_specjalizacja_0" to_schema="dkm-healthcare" to_table="specjalizacje" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_spec" pk="id_spec" />
+			</fk>
+			<fk name="fk_lekarz_specjalizacja" to_schema="dkm-healthcare" to_table="lekarze" delete_action="cascade" update_action="cascade" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
 			</fk>
 		</table>
 		<table name="lekarze" >
-			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
-			<column name="prawa" type="bool" jt="-7" mandatory="y" />
+			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
+			<column name="prawa" type="bool" jt="-7" mandatory="y" >
+				<defo>&#039;true&#039;</defo>
+			</column>
 			<index name="pk_lekarze" unique="PRIMARY_KEY" >
 				<column name="id_lekarz" />
 			</index>
-			<fk name="fk_lekarze" to_schema="dkm-healthcare" to_table="osoby" >
-				<fk_column name="id_lekarz" pk="id_lekarz" />
+			<fk name="fk_lekarze" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="id_lekarz" pk="pesel" />
 			</fk>
 		</table>
 		<table name="osoby" >
 			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
 			<column name="haslo" type="char" length="32" jt="1" mandatory="y" />
+			<column name="n" type="integer" jt="4" mandatory="y" >
+				<defo>1</defo>
+			</column>
+			<column name="n_iteracja" type="char" length="32" jt="1" />
 			<column name="imie" type="varchar" length="20" jt="12" mandatory="y" />
 			<column name="nazwisko" type="varchar" length="50" jt="12" mandatory="y" />
 			<column name="data_urodzenia" type="date" jt="91" mandatory="y" />
 			<column name="adres" type="text" jt="12" />
-			<column name="id_pacjent" type="char" length="12" jt="1" />
-			<column name="id_aptekarz" type="char" length="12" jt="1" />
-			<column name="id_lekarz" type="char" length="12" jt="1" />
-			<column name="id_firma" type="numeric" jt="2" >
-				<comment><![CDATA[samsie, znaczy sam sie ubezpiecza]]></comment>
-			</column>
-			<column name="email" type="text" jt="12" />
+			<column name="aptekarz" type="bool" jt="-7" />
 			<column name="admin" type="bool" jt="-7" mandatory="y" >
 				<defo>&#039;false&#039;</defo>
 			</column>
+			<column name="email" type="text" jt="12" />
 			<index name="pk_osoby" unique="PRIMARY_KEY" >
 				<column name="pesel" />
 			</index>
-			<index name="pk_osoby_0" unique="UNIQUE" >
-				<column name="id_pacjent" />
+		</table>
+		<table name="osoby_info" >
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="alergie" type="text" jt="12" />
+			<column name="inne" type="text" jt="12" />
+			<column name="przyjmowane_leki" type="text" jt="12" />
+			<column name="modyfikacja_historii" type="date" jt="91" mandatory="y" >
+				<defo>current_date</defo>
+			</column>
+			<column name="lekarz_rodzinny" type="char" length="11" jt="1" />
+			<index name="pk_osoby_info" unique="PRIMARY_KEY" >
+				<column name="pesel" />
 			</index>
-			<index name="pk_osoby_1" unique="UNIQUE" >
-				<column name="id_lekarz" />
+			<index name="idx_osoby_info" unique="NORMAL" >
+				<column name="lekarz_rodzinny" />
 			</index>
-			<index name="idx_osoby" unique="NORMAL" >
-				<column name="id_firma" />
-			</index>
-			<fk name="fk_osoby" to_schema="dkm-healthcare" to_table="pracodawcy" >
-				<fk_column name="id_firma" pk="id_firma" />
+			<constraint name="ck_1" >
+				<string>pesel != lekarz_rodzinny</string>
+			</constraint>
+			<fk name="fk_osoby_info" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="pesel" pk="pesel" />
+			</fk>
+			<fk name="fk_osoby_info_0" to_schema="dkm-healthcare" to_table="lekarze" delete_action="setNull" update_action="cascade" >
+				<fk_column name="lekarz_rodzinny" pk="id_lekarz" />
 			</fk>
 		</table>
 		<table name="pacjenci_specjalisci" >
-			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
-			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
 			<index name="idx_pacjenci_specjalisci" unique="PRIMARY_KEY" >
-				<column name="id_pacjent" />
+				<column name="pesel" />
 				<column name="id_lekarz" />
 			</index>
 			<index name="pk_pacjenci_specjalisci" unique="UNIQUE" >
-				<column name="id_pacjent" />
+				<column name="pesel" />
 			</index>
 			<index name="idx_pacjenci_specjalisci_0" unique="UNIQUE" >
 				<column name="id_lekarz" />
 			</index>
-			<fk name="fk_pacjenci_specjalisci" to_schema="dkm-healthcare" to_table="lekarze" >
+			<constraint name="ck_0" >
+				<string>pesel != id_lekarz</string>
+			</constraint>
+			<fk name="fk_pacjenci_specjalisci" to_schema="dkm-healthcare" to_table="lekarze" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_lekarz" pk="id_lekarz" />
 			</fk>
-			<fk name="fk_pacjenci_specjalisci_0" to_schema="dkm-healthcare" to_table="pacjent" >
-				<fk_column name="id_pacjent" pk="id_pacjent" />
+			<fk name="fk_pacjenci_specjalisci_0" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="pesel" pk="pesel" />
 			</fk>
 		</table>
-		<table name="pacjent" >
-			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
-			<column name="lekarz_rodzinny" type="char" length="12" jt="1" mandatory="y" />
-			<index name="pk_pacjent" unique="PRIMARY_KEY" >
-				<column name="id_pacjent" />
-			</index>
-			<index name="idx_pacjent" unique="NORMAL" >
-				<column name="lekarz_rodzinny" />
-			</index>
-			<fk name="fk_pacjent" to_schema="dkm-healthcare" to_table="osoby" >
-				<fk_column name="id_pacjent" pk="id_pacjent" />
-			</fk>
-			<fk name="fk_pacjent_0" to_schema="dkm-healthcare" to_table="lekarze" >
-				<fk_column name="lekarz_rodzinny" pk="id_lekarz" />
-			</fk>
-		</table>
+		<table name="pacjent_l" />
 		<table name="placowki" >
 			<column name="id_placowka" type="numeric" jt="2" mandatory="y" />
 			<column name="typ" type="text" jt="12" mandatory="y" />
@@ -147,30 +150,27 @@
 			<index name="idx_placowki_zabiegi_1" unique="NORMAL" >
 				<column name="id_zabieg" />
 			</index>
-			<fk name="fk_placowki_zabiegi" to_schema="dkm-healthcare" to_table="placowki" >
+			<fk name="fk_placowki_zabiegi" to_schema="dkm-healthcare" to_table="placowki" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_placowka" pk="id_placowka" />
 			</fk>
-			<fk name="fk_placowki_zabiegi_0" to_schema="dkm-healthcare" to_table="zabiegi" >
+			<fk name="fk_placowki_zabiegi_0" to_schema="dkm-healthcare" to_table="zabiegi" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_zabieg" pk="id_zabieg" />
 			</fk>
 		</table>
-		<table name="pracodawcy" >
-			<column name="id_firma" type="numeric" jt="2" mandatory="y" >
-				<comment><![CDATA[samsie=000000000000000000000000000000]]></comment>
-			</column>
-			<column name="adres" type="text" jt="12" mandatory="y" />
-			<column name="haslo" type="numeric" length="32" jt="2" mandatory="y" />
-			<column name="email" type="text" jt="12" />
-			<index name="pk_pracodawcy" unique="PRIMARY_KEY" >
-				<column name="id_firma" />
-			</index>
-		</table>
 		<table name="recepty" >
-			<column name="numer" type="numeric" jt="2" mandatory="y" />
-			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
-			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
-			<column name="zrealizowana_przez" type="char" length="12" jt="1" />
+			<column name="numer" type="numeric" jt="2" mandatory="y" >
+				<defo>&#039;nextval(&#039;seq_nr_recepty&#039;)&#039;</defo>
+			</column>
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="11" jt="1" />
+			<column name="zrealizowana_przez" type="char" length="11" jt="1" />
 			<column name="lek" type="text" jt="12" mandatory="y" />
+			<column name="data_waznosci" type="date" jt="91" >
+				<defo>current_date + interval &#039;3 month&#039;</defo>
+			</column>
+			<column name="zrealizowana" type="bool" jt="-7" mandatory="y" >
+				<defo>&#039;false&#039;</defo>
+			</column>
 			<index name="pk_recepty" unique="PRIMARY_KEY" >
 				<column name="numer" />
 			</index>
@@ -178,19 +178,27 @@
 				<column name="id_lekarz" />
 			</index>
 			<index name="idx_recepty_0" unique="NORMAL" >
-				<column name="id_pacjent" />
+				<column name="pesel" />
 			</index>
-			<fk name="fk_recepty" to_schema="dkm-healthcare" to_table="lekarze" >
+			<index name="idx_recepty_1" unique="NORMAL" >
+				<column name="zrealizowana_przez" />
+			</index>
+			<fk name="fk_recepty" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="pesel" pk="pesel" />
+			</fk>
+			<fk name="fk_recepty_0" to_schema="dkm-healthcare" to_table="lekarze" delete_action="setNull" update_action="cascade" >
 				<fk_column name="id_lekarz" pk="id_lekarz" />
 			</fk>
-			<fk name="fk_recepty_0" to_schema="dkm-healthcare" to_table="pacjent" >
-				<fk_column name="id_pacjent" pk="id_pacjent" />
+			<fk name="fk_recepty_1" to_schema="dkm-healthcare" to_table="osoby" delete_action="setNull" update_action="cascade" >
+				<fk_column name="zrealizowana_przez" pk="pesel" />
 			</fk>
 		</table>
 		<table name="skierowania" >
-			<column name="numer" type="numeric" jt="2" mandatory="y" />
-			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
-			<column name="id_lekarz" type="char" length="12" jt="1" mandatory="y" />
+			<column name="numer" type="numeric" jt="2" mandatory="y" >
+				<defo>&#039;nextval(&#039;seq_nr_skier&#039;)&#039;</defo>
+			</column>
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="id_lekarz" type="char" length="11" jt="1" />
 			<column name="id_zabieg" type="integer" jt="4" mandatory="y" />
 			<column name="zrealizowany" type="bool" jt="-7" mandatory="y" >
 				<defo>&#039;false&#039;</defo>
@@ -199,7 +207,7 @@
 				<column name="numer" />
 			</index>
 			<index name="idx_skierowania" unique="NORMAL" >
-				<column name="id_pacjent" />
+				<column name="pesel" />
 			</index>
 			<index name="idx_skierowania_0" unique="NORMAL" >
 				<column name="id_lekarz" />
@@ -207,14 +215,14 @@
 			<index name="idx_skierowania_1" unique="NORMAL" >
 				<column name="id_zabieg" />
 			</index>
-			<fk name="fk_skierowania" to_schema="dkm-healthcare" to_table="pacjent" >
-				<fk_column name="id_pacjent" pk="id_pacjent" />
-			</fk>
-			<fk name="fk_skierowania_0" to_schema="dkm-healthcare" to_table="lekarze" >
-				<fk_column name="id_lekarz" pk="id_lekarz" />
-			</fk>
-			<fk name="fk_skierowania_1" to_schema="dkm-healthcare" to_table="zabiegi" >
+			<fk name="fk_skierowania_1" to_schema="dkm-healthcare" to_table="zabiegi" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_zabieg" pk="id_zabieg" />
+			</fk>
+			<fk name="fk_skierowania" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="pesel" pk="pesel" />
+			</fk>
+			<fk name="fk_skierowania_0" to_schema="dkm-healthcare" to_table="lekarze" delete_action="setNull" update_action="cascade" >
+				<fk_column name="id_lekarz" pk="id_lekarz" />
 			</fk>
 		</table>
 		<table name="specjalizacje" >
@@ -224,52 +232,152 @@
 				<column name="id_spec" />
 			</index>
 		</table>
-		<table name="ubezpieczenia" >
-			<column name="id_ub" type="numeric" jt="2" mandatory="y" />
-			<column name="id_pacjent" type="char" length="12" jt="1" mandatory="y" />
-			<column name="id_firma" type="numeric" jt="2" />
-			<column name="od" type="date" jt="91" mandatory="y" >
-				<defo>&#039;current_date&#039;</defo>
-			</column>
-			<column name="do" type="date" jt="91" mandatory="y" />
-			<index name="pk_ubezpieczenia" unique="PRIMARY_KEY" >
-				<column name="id_ub" />
-			</index>
-			<index name="idx_ubezpieczenia" unique="NORMAL" >
-				<column name="id_firma" />
-			</index>
-			<index name="idx_ubezpieczenia_0" unique="NORMAL" >
-				<column name="id_pacjent" />
-			</index>
-			<fk name="fk_ubezpieczenia" to_schema="dkm-healthcare" to_table="pracodawcy" >
-				<fk_column name="id_firma" pk="id_firma" />
-			</fk>
-			<fk name="fk_ubezpieczenia_0" to_schema="dkm-healthcare" to_table="pacjent" >
-				<fk_column name="id_pacjent" pk="id_pacjent" />
-			</fk>
-		</table>
 		<table name="zabiegi" >
-			<column name="id_zabieg" type="integer" jt="4" mandatory="y" />
+			<column name="id_zabieg" type="integer" jt="4" mandatory="y" >
+				<defo>&#039;nextval(&#039;seq_id_zabieg&#039;)&#039;</defo>
+			</column>
 			<column name="nazwa" type="text" jt="12" mandatory="y" />
 			<index name="pk_zabiegi" unique="PRIMARY_KEY" >
 				<column name="id_zabieg" />
 			</index>
 		</table>
+		<view name="historia_powiadomienia" >
+			<view_script><![CDATA[SELECT imie,nazwisko,email FROM osoby natural join osoby_info
+where modyfikacji_historii=current_date order by pesel;]]></view_script>
+		</view>
+		<view name="recepty_powiadomienia_5" >
+			<view_script><![CDATA[SELECT imie,nazwisko,email, numer as "recepta" FROM osoby natural join recepty 
+where zrealizowana=false and email is not null and 
+extract(day from age(data_waznosci, current_date))=5  order by pesel;]]></view_script>
+		</view>
+		<view name="recepty_powiadomienia_dzis" >
+			<view_script><![CDATA[SELECT imie,nazwisko,email, numer as "recepta" FROM osoby natural join recepty 
+where zrealizowana=false and email is not null and 
+data_waznosci=current_date order by pesel;]]></view_script>
+		</view>
+		<view name="zabiegi_info" >
+			<view_script><![CDATA[SELECT z.nazwa, id_zabieg ,adres, miasto, nr_tel  from zabiegi z natural join placowki_zabiegi
+join placowki p using (id_placowka) order by id_zabieg;]]></view_script>
+		</view>
+		<sequence name="seq_id_zabieg" start="1" suffix="increment by 1" />
+		<sequence name="seq_nr_recepty" start="1" suffix="increment by 1" />
+		<sequence name="seq_nr_skier" start="1" suffix="increment by 1" />
+		<trigger name="add_osoba_info" id="Trigger3195256" isSystem="false" >
+			<string><![CDATA[create trigger add_osoba_info after insert on osoby for row
+execute procedure add_osoba_info();]]></string>
+		</trigger>
+		<trigger name="change_pesel_check" id="Trigger3454664" isSystem="false" >
+			<string><![CDATA[create trigger change_pesel_check before update on osoby for row
+execute procedure change_pesel_check();]]></string>
+		</trigger>
+		<trigger name="pesel_check" id="Trigger2056020" isSystem="false" >
+			<string><![CDATA[create trigger pesel_check before insert on osoby
+for each row execute procedure pesel_check();
+]]></string>
+		</trigger>
+		<trigger name="recepty_check" id="Trigger2579310" isSystem="false" >
+			<string><![CDATA[create trigger recepty_check before insert on recepty for row
+execute procedure recepty_check();]]></string>
+		</trigger>
+		<trigger name="skier_check" id="Trigger2426865" isSystem="false" >
+			<string><![CDATA[create trigger skier_check before insert on skierowania for row
+execute procedure skier_check();]]></string>
+		</trigger>
+		<trigger name="zabieg_check" id="Trigger2709646" isSystem="false" >
+			<string><![CDATA[create trigger zabieg_check before insert on zabiegi for row
+execute procedure zabiegi_check();]]></string>
+		</trigger>
+		<function name="add_osoba_info" id="Function2845147" isSystem="false" >
+			<string><![CDATA[create or replace function add_osoba_info() returns trigger as $$
+begin
+    insert into osoby_info(pesel) values (new.pesel);
+    return new;
+end;
+$$ language plpgsql;]]></string>
+		</function>
+		<function name="change_pesel_check" id="Function3353531" isSystem="false" >
+			<string><![CDATA[create or replace function change_pesel_check() returns trigger as $$
+begin
+    new.pesel=old.pesel;
+    return new;
+end;
+$$ language plpgsql;]]></string>
+		</function>
+		<function name="getchar" id="Function1869974" isSystem="false" >
+			<string><![CDATA[create or replace function getchar(pesel char(11), i integer) returns integer as $$
+begin
+  return cast(substr(pesel, i, 1) as integer);
+end;
+$$ language pgplsql;]]></string>
+		</function>
+		<function name="pesel_check" id="Function1989459" isSystem="false" >
+			<string><![CDATA[create or replace function pesel_check() returns trigger as
+$$
+begin
+	if (1 * getchar(new.pesel, 1) + 3 * getchar(new.pesel, 2) + 7 * getchar(new.pesel, 3) + 9 * getchar(new.pesel, 4) + 1 * getchar(new.pesel, 5) + 3 * getchar(new.pesel, 6) + 7 * getchar(new.pesel, 7) + 9 * getchar(new.pesel, 8) + 1 * getchar(new.pesel, 9) + 3 * getchar(new.pesel, 10) + getchar(new.pesel, 11)) % 10 = 0 then
+    return new;
+  else
+    return null;
+  end if;
+end;
+$$ language plpgsql;]]></string>
+		</function>
+		<function name="recepty_check" id="Function2535139" isSystem="false" >
+			<string><![CDATA[create or replace function recepty_check() returns trigger as $$
+declare 
+    x numeric := nextval('seq_nr_recepty');
+begin
+    while x in (select numer from recepty) loop
+        x = nextval('seq_nr_recepty');
+    end loop;
+    new.numer=x;
+    return new;
+end;
+$$ language plpqsql;]]></string>
+		</function>
+		<function name="skier_check" id="Function2163187" isSystem="false" >
+			<string><![CDATA[create or replace function skier_check() returns trigger as $$
+declare 
+    x numeric := nextval('seq_nr_skier');
+begin
+    while x in (select numer from skierowania) loop
+        x = nextval('seq_nr_skier');
+    end loop;
+    new.numer=x;
+    return new;
+end;
+$$ language plpqsql;]]></string>
+		</function>
+		<function name="zabiegi_check" id="Function2644246" isSystem="false" >
+			<string><![CDATA[create or replace function zabiegi_check() returns trigger as $$
+declare 
+    x numeric := nextval('seq_id_zabieg');
+begin
+    while x in (select id_zabieg from zabiegi) loop
+        x = nextval('seq_id_zabieg');
+    end loop;
+    new.id_zabieg=x;
+    return new;
+end;
+$$ language plpqsql;]]></string>
+		</function>
 	</schema>
 	<layout id="Layout46916" name="dkm-healthcare" show_relation_columns="y" >
-		<entity schema="dkm-healthcare" name="pacjenci_specjalisci" color="a8c4ef" x="435" y="300" />
-		<entity schema="dkm-healthcare" name="specjalizacje" color="a8c4ef" x="555" y="675" />
-		<entity schema="dkm-healthcare" name="lekarz_specjalizacja" color="a8c4ef" x="345" y="630" />
-		<entity schema="dkm-healthcare" name="zabiegi" color="a8c4ef" x="1095" y="105" />
-		<entity schema="dkm-healthcare" name="placowki_zabiegi" color="a8c4ef" x="1260" y="90" />
-		<entity schema="dkm-healthcare" name="placowki" color="a8c4ef" x="1125" y="225" />
-		<entity schema="dkm-healthcare" name="lekarz_placowki" color="a8c4ef" x="855" y="315" />
-		<entity schema="dkm-healthcare" name="lekarze" color="a8c4ef" x="255" y="420" />
-		<entity schema="dkm-healthcare" name="skierowania" color="a8c4ef" x="420" y="435" />
-		<entity schema="dkm-healthcare" name="recepty" color="a8c4ef" x="780" y="525" />
-		<entity schema="dkm-healthcare" name="pracodawcy" color="a8c4ef" x="60" y="600" />
-		<entity schema="dkm-healthcare" name="ubezpieczenia" color="a8c4ef" x="810" y="45" />
-		<entity schema="dkm-healthcare" name="pacjent" color="a8c4ef" x="495" y="105" />
-		<entity schema="dkm-healthcare" name="osoby" color="a8c4ef" x="45" y="120" />
+		<entity schema="dkm-healthcare" name="specjalizacje" color="a8c4ef" x="555" y="630" />
+		<entity schema="dkm-healthcare" name="lekarz_specjalizacja" color="a8c4ef" x="345" y="585" />
+		<entity schema="dkm-healthcare" name="lekarz_placowki" color="a8c4ef" x="795" y="285" />
+		<entity schema="dkm-healthcare" name="placowki_zabiegi" color="a8c4ef" x="1185" y="60" />
+		<entity schema="dkm-healthcare" name="osoby" color="a8c4ef" x="45" y="75" />
+		<entity schema="dkm-healthcare" name="placowki" color="a8c4ef" x="1020" y="195" />
+		<entity schema="dkm-healthcare" name="pacjenci_specjalisci" color="a8c4ef" x="435" y="255" />
+		<entity schema="dkm-healthcare" name="lekarze" color="a8c4ef" x="645" y="75" />
+		<entity schema="dkm-healthcare" name="recepty" color="a8c4ef" x="780" y="480" />
+		<entity schema="dkm-healthcare" name="zabiegi" color="a8c4ef" x="990" y="45" />
+		<entity schema="dkm-healthcare" name="recepty_powiadomienia_5" color="a8c4ef" x="1005" y="540" />
+		<entity schema="dkm-healthcare" name="historia_powiadomienia" color="a8c4ef" x="1005" y="465" />
+		<entity schema="dkm-healthcare" name="recepty_powiadomienia_dzis" color="a8c4ef" x="1005" y="615" />
+		<entity schema="dkm-healthcare" name="zabiegi_info" color="a8c4ef" x="1200" y="465" />
+		<entity schema="dkm-healthcare" name="skierowania" color="a8c4ef" x="420" y="390" />
+		<entity schema="dkm-healthcare" name="osoby_info" color="a8c4ef" x="60" y="555" />
 	</layout>
 </project>
