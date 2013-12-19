@@ -74,20 +74,28 @@
 				<column name="pesel" />
 			</index>
 		</table>
+		<table name="osoby_alergie" >
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="alergia" type="text" jt="12" />
+			<index name="pk_osoby_alerigie" unique="PRIMARY_KEY" >
+				<column name="pesel" />
+			</index>
+			<fk name="fk_osoby_alerigie" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="pesel" pk="pesel" />
+			</fk>
+		</table>
 		<table name="osoby_info" >
 			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
-			<column name="alergie" type="text" jt="12" />
-			<column name="inne" type="text" jt="12" />
-			<column name="przyjmowane_leki" type="text" jt="12" />
-			<column name="modyfikacja_historii" type="date" jt="91" mandatory="y" >
+			<column name="lekarz rodzinny" type="char" length="11" jt="1" />
+			<column name="historia_modyfikacja" type="date" jt="91" mandatory="y" >
 				<defo>current_date</defo>
 			</column>
-			<column name="lekarz_rodzinny" type="char" length="11" jt="1" />
+			<column name="info" type="text" jt="12" />
 			<index name="pk_osoby_info" unique="PRIMARY_KEY" >
 				<column name="pesel" />
 			</index>
 			<index name="idx_osoby_info" unique="NORMAL" >
-				<column name="lekarz_rodzinny" />
+				<column name="lekarz rodzinny" />
 			</index>
 			<constraint name="ck_1" >
 				<string>pesel != lekarz_rodzinny</string>
@@ -96,7 +104,17 @@
 				<fk_column name="pesel" pk="pesel" />
 			</fk>
 			<fk name="fk_osoby_info_0" to_schema="dkm-healthcare" to_table="lekarze" delete_action="setNull" update_action="cascade" >
-				<fk_column name="lekarz_rodzinny" pk="id_lekarz" />
+				<fk_column name="lekarz rodzinny" pk="id_lekarz" />
+			</fk>
+		</table>
+		<table name="osoby_leki" >
+			<column name="pesel" type="char" length="11" jt="1" mandatory="y" />
+			<column name="lek" type="text" jt="12" />
+			<index name="pk_osoby_leki" unique="PRIMARY_KEY" >
+				<column name="pesel" />
+			</index>
+			<fk name="fk_osoby_leki" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="pesel" pk="pesel" />
 			</fk>
 		</table>
 		<table name="pacjenci_specjalisci" >
@@ -242,22 +260,38 @@
 			</index>
 		</table>
 		<view name="historia_powiadomienia" >
-			<view_script><![CDATA[SELECT imie,nazwisko,email FROM osoby natural join osoby_info
-where modyfikacji_historii=current_date order by pesel;]]></view_script>
+			<view_script><![CDATA[SELECT imie,nazwisko,email FROM "dkm-healthcare".osoby  natural join "dkm-healthcare".osoby_info
+where historia_modyfikacja=current_date order by pesel;]]></view_script>
+			<column name="email" type="text" />
+			<column name="imie" type="varchar" />
+			<column name="nazwisko" type="varchar" />
 		</view>
 		<view name="recepty_powiadomienia_5" >
-			<view_script><![CDATA[SELECT imie,nazwisko,email, numer as "recepta" FROM osoby natural join recepty 
+			<view_script><![CDATA[SELECT imie,nazwisko,email, numer as "recepta" FROM "dkm-healthcare".osoby natural join "dkm-healthcare".recepty 
 where zrealizowana=false and email is not null and 
 extract(day from age(data_waznosci, current_date))=5  order by pesel;]]></view_script>
+			<column name="email" type="text" />
+			<column name="imie" type="varchar" />
+			<column name="nazwisko" type="varchar" />
+			<column name="recepta" type="numeric" />
 		</view>
 		<view name="recepty_powiadomienia_dzis" >
-			<view_script><![CDATA[SELECT imie,nazwisko,email, numer as "recepta" FROM osoby natural join recepty 
+			<view_script><![CDATA[SELECT imie,nazwisko,email, numer as "recepta" FROM "dkm-healthcare".osoby natural join "dkm-healthcare".recepty 
 where zrealizowana=false and email is not null and 
 data_waznosci=current_date order by pesel;]]></view_script>
+			<column name="email" type="text" />
+			<column name="imie" type="varchar" />
+			<column name="nazwisko" type="varchar" />
+			<column name="recepta" type="numeric" />
 		</view>
 		<view name="zabiegi_info" >
-			<view_script><![CDATA[SELECT z.nazwa, id_zabieg ,adres, miasto, nr_tel  from zabiegi z natural join placowki_zabiegi
-join placowki p using (id_placowka) order by id_zabieg;]]></view_script>
+			<view_script><![CDATA[SELECT z.nazwa, id_zabieg ,adres, miasto, nr_tel  from "dkm-healthcare".zabiegi z natural join "dkm-healthcare".placowki_zabiegi
+join "dkm-healthcare".placowki p using (id_placowka) order by id_zabieg;]]></view_script>
+			<column name="adres" type="text" />
+			<column name="id_zabieg" type="serial" />
+			<column name="miasto" type="text" />
+			<column name="nazwa" type="text" />
+			<column name="nr_tel" type="numeric" />
 		</view>
 		<sequence name="seq_id_zabieg" start="1" suffix="increment by 1" />
 		<sequence name="seq_nr_recepty" start="1" suffix="increment by 1" />
@@ -366,24 +400,21 @@ $$ language plpqsql;]]></string>
 	<layout id="Layout46916" name="dkm-healthcare" show_relation_columns="y" >
 		<entity schema="dkm-healthcare" name="specjalizacje" color="a8c4ef" x="555" y="630" />
 		<entity schema="dkm-healthcare" name="placowki_zabiegi" color="a8c4ef" x="1185" y="60" />
-		<entity schema="dkm-healthcare" name="osoby" color="a8c4ef" x="45" y="75" />
 		<entity schema="dkm-healthcare" name="placowki" color="a8c4ef" x="1020" y="195" />
 		<entity schema="dkm-healthcare" name="lekarze" color="a8c4ef" x="645" y="75" />
 		<entity schema="dkm-healthcare" name="recepty" color="a8c4ef" x="780" y="480" />
 		<entity schema="dkm-healthcare" name="zabiegi" color="a8c4ef" x="990" y="45" />
-		<entity schema="dkm-healthcare" name="recepty_powiadomienia_5" color="a8c4ef" x="1005" y="540" />
-		<entity schema="dkm-healthcare" name="historia_powiadomienia" color="a8c4ef" x="1005" y="465" />
-		<entity schema="dkm-healthcare" name="recepty_powiadomienia_dzis" color="a8c4ef" x="1005" y="615" />
-		<entity schema="dkm-healthcare" name="zabiegi_info" color="a8c4ef" x="1200" y="465" />
 		<entity schema="dkm-healthcare" name="skierowania" color="a8c4ef" x="420" y="390" />
-		<entity schema="dkm-healthcare" name="osoby_info" color="a8c4ef" x="60" y="555" />
 		<entity schema="dkm-healthcare" name="pacjenci_specjalisci" color="a8c4ef" x="435" y="255" />
 		<entity schema="dkm-healthcare" name="lekarze_placowki" color="a8c4ef" x="795" y="285" />
 		<entity schema="dkm-healthcare" name="lekarze_specjalizacje" color="a8c4ef" x="345" y="585" />
-		<script name="Sql" id="SQL5120034" >
-			<string><![CDATA[DROP SCHEMA public CASCADE;
-
-]]></string>
-		</script>
+		<entity schema="dkm-healthcare" name="recepty_powiadomienia_5" color="a8c4ef" x="1005" y="510" />
+		<entity schema="dkm-healthcare" name="zabiegi_info" color="a8c4ef" x="1200" y="495" />
+		<entity schema="dkm-healthcare" name="recepty_powiadomienia_dzis" color="a8c4ef" x="1005" y="645" />
+		<entity schema="dkm-healthcare" name="osoby_leki" color="a8c4ef" x="210" y="645" />
+		<entity schema="dkm-healthcare" name="osoby_alergie" color="a8c4ef" x="60" y="660" />
+		<entity schema="dkm-healthcare" name="historia_powiadomienia" color="a8c4ef" x="1050" y="390" />
+		<entity schema="dkm-healthcare" name="osoby" color="a8c4ef" x="45" y="75" />
+		<entity schema="dkm-healthcare" name="osoby_info" color="a8c4ef" x="60" y="510" />
 	</layout>
 </project>

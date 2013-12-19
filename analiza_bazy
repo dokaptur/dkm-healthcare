@@ -1,4 +1,16 @@
 Nasz projekt, jak sama nazwa wskazuje, ma być systemem informacyjnym dla lekarzy i pacjentów. Każda osoba może zgłosić u lekarza rodzinnego, że chce dostać konto w tym systemie, wtedy lekarz rodzinny kontaktuje się z adminami i konto zostaje założone (hasło do odebrania u lekarza rodzinnego). Oczywiście później można to hasło zmienić.
-Pacjent może po zalogowaniu do systemu dowiedzieć się różnych rzeczy dotyczących jego zdrowia (recepty, skierowania, alergie, prowadzący lekarze specjaliści itp). Ponadto, mając skierowanie na jakis zabieg, może znaleźć numery telefonów do placówek w swoim mieście, które dane zabiegi wykonują.
-Jeżeli osoba która się loguje jest dodatkowo aptekarzem, może (jak pozna nr recepty) "zrealizować" podana przez pacjenta receptę.
-Osoba będąca lekarzem, może dodatkowo doweidziec się wszystkiego o swoich pacjentach, wystawiać recepty, skierowania, a także modyfikować historię choroby.
+Pacjent może po zalogowaniu do systemu dowiedzieć się różnych rzeczy dotyczących jego zdrowia (recepty, skierowania, alergie, prowadzący lekarze specjaliści itp). Ponadto, mając skierowanie na jakis zabieg, może znaleźć numery telefonów do placówek w swoim mieście, które dane zabiegi wykonują (stąd też stworzony odpowiedni widok). Każdy zabieg ma swój unikalny nr, aby było łatwo je rozróżniać. Podobnie ze skierowaniem do specjalisty.
+
+Jeżeli osoba która się loguje jest dodatkowo aptekarzem, może "zrealizować" podaną przez pacjenta receptę.
+
+Osoba będąca lekarzem, może dodatkowo dowiedzieć się wszystkiego o swoich pacjentach, wystawiać recepty, skierowania, a także modyfikować historię choroby i informacje o stanie zdrowia, takie jak alergie czy przyjmowane leki. Dodatkowa każdy lekarz może się dowiedzieć ważnych informacji na temat każdej osoby- jest to potrzebne np. na wypadek interwencji pogotowia lub nagłego przypadku pogorszenia stanu zdrowia i udzielania pomocy przez lekarza nie przypisanego do danej osoby. Stąd też tabela osoby_info, osoby_alergie i osoby_leki (chodzi o leki obecnie przyjmowane).
+Lekarz może mieć wiele specjalizaji i pracować w wielu placówkach, stąd takie tabele pośrednie.
+
+Historia choroby trzymana będzie na serwerze bazy danych jak folder o nazwie będącej numerem pesel użytkownika. Będzie się na nią składał plik tekstowy z ogólną historią oraz inne dokumenty, np. zdjęcia RTG (dlatego nie jest to zaznaczone w bazie danych).
+
+W naszej aplikacji dodatkowo znajdują się serwery powiadomień, które będą kilka razy dziennie wysyłaly powiadomienia pacjentom, którym termin ważności niezrealizowanej recepty mija za 5 dni lub minął dzisiaj. Osoba także będzie informowana, jeśli w danym dniu nastąpiła modyfikacja jej historii choroby (np. pojawiły się wyniki badań). Stąd tez są stworzone odpowiednie widoki.
+
+Uznaliśmy też, że baza danych powinna pozwalać na usunięcie lekarza, ale w związku z tym nie powinny znikać np recepty bądź skierowania przez niego wystawione. Dlatego mamy ustawione, że w razie czego wartości lekarza zmieniają się tam na NULL.
+Są też triggery sprawdzające poprawność peselu oraz dbające o unikalność nr recepty, skierowania i zabiegu (dodatkowo automatycznie je nadające). Ponadto przy dodawaniu krotki do tabeli osoby, automatycznie tworzy sie krotka przypisana danemu peselowi w tabeli osoby_info. Peselu nie można modyfikować.
+
+Uwaga! Z bazy danych żadne informacje takie jak recepty, skierowania, itp (tzn dotyczące zdrowia danej osoby nie są usuwane). Daje to możliwość pełnego archiwizowania stanu zdrowia każdego obywatela.
