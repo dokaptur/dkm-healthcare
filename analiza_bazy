@@ -1,0 +1,4 @@
+Nasz projekt, jak sama nazwa wskazuje, ma być systemem informacyjnym dla lekarzy i pacjentów. Każda osoba może zgłosić u lekarza rodzinnego, że chce dostać konto w tym systemie, wtedy lekarz rodzinny kontaktuje się z adminami i konto zostaje założone (hasło do odebrania u lekarza rodzinnego). Oczywiście później można to hasło zmienić.
+Pacjent może po zalogowaniu do systemu dowiedzieć się różnych rzeczy dotyczących jego zdrowia (recepty, skierowania, alergie, prowadzący lekarze specjaliści itp). Ponadto, mając skierowanie na jakis zabieg, może znaleźć numery telefonów do placówek w swoim mieście, które dane zabiegi wykonują.
+Jeżeli osoba która się loguje jest dodatkowo aptekarzem, może (jak pozna nr recepty) "zrealizować" podana przez pacjenta receptę.
+Osoba będąca lekarzem, może dodatkowo doweidziec się wszystkiego o swoich pacjentach, wystawiać recepty, skierowania, a także modyfikować historię choroby.

@@ -2,7 +2,19 @@
 <project name="dkm-healthcare" id="Project46912" database="PostgreSQL" >
 	<schema name="dkm-healthcare" schemaname="dkm-healthcare" defo="y" >
 		<table name="aptekarze" />
-		<table name="lekarz_placowki" >
+		<table name="lekarze" >
+			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
+			<column name="prawa" type="bool" jt="-7" mandatory="y" >
+				<defo>&#039;true&#039;</defo>
+			</column>
+			<index name="pk_lekarze" unique="PRIMARY_KEY" >
+				<column name="id_lekarz" />
+			</index>
+			<fk name="fk_lekarze" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
+				<fk_column name="id_lekarz" pk="pesel" />
+			</fk>
+		</table>
+		<table name="lekarze_placowki" >
 			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
 			<column name="id_placowka" type="numeric" jt="2" mandatory="y" />
 			<index name="idx_lekarz_placowki" unique="PRIMARY_KEY" >
@@ -22,7 +34,7 @@
 				<fk_column name="id_lekarz" pk="id_lekarz" />
 			</fk>
 		</table>
-		<table name="lekarz_specjalizacja" >
+		<table name="lekarze_specjalizacje" >
 			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
 			<column name="id_spec" type="integer" jt="4" mandatory="y" />
 			<index name="idx_lekarz_specjalizacja" unique="PRIMARY_KEY" >
@@ -40,18 +52,6 @@
 			</fk>
 			<fk name="fk_lekarz_specjalizacja" to_schema="dkm-healthcare" to_table="lekarze" delete_action="cascade" update_action="cascade" >
 				<fk_column name="id_lekarz" pk="id_lekarz" />
-			</fk>
-		</table>
-		<table name="lekarze" >
-			<column name="id_lekarz" type="char" length="11" jt="1" mandatory="y" />
-			<column name="prawa" type="bool" jt="-7" mandatory="y" >
-				<defo>&#039;true&#039;</defo>
-			</column>
-			<index name="pk_lekarze" unique="PRIMARY_KEY" >
-				<column name="id_lekarz" />
-			</index>
-			<fk name="fk_lekarze" to_schema="dkm-healthcare" to_table="osoby" delete_action="cascade" update_action="cascade" >
-				<fk_column name="id_lekarz" pk="pesel" />
 			</fk>
 		</table>
 		<table name="osoby" >
@@ -365,8 +365,6 @@ $$ language plpqsql;]]></string>
 	<connector name="PostgreSQL" database="PostgreSQL" driver_class="org.postgresql.Driver" driver_jar="postgresql-9.2-1003.jdbc3.jar" host="localhost" port="5432" instance="dkm" user="dudu" schema_mapping="" />
 	<layout id="Layout46916" name="dkm-healthcare" show_relation_columns="y" >
 		<entity schema="dkm-healthcare" name="specjalizacje" color="a8c4ef" x="555" y="630" />
-		<entity schema="dkm-healthcare" name="lekarz_specjalizacja" color="a8c4ef" x="345" y="585" />
-		<entity schema="dkm-healthcare" name="lekarz_placowki" color="a8c4ef" x="795" y="285" />
 		<entity schema="dkm-healthcare" name="placowki_zabiegi" color="a8c4ef" x="1185" y="60" />
 		<entity schema="dkm-healthcare" name="osoby" color="a8c4ef" x="45" y="75" />
 		<entity schema="dkm-healthcare" name="placowki" color="a8c4ef" x="1020" y="195" />
@@ -380,6 +378,8 @@ $$ language plpqsql;]]></string>
 		<entity schema="dkm-healthcare" name="skierowania" color="a8c4ef" x="420" y="390" />
 		<entity schema="dkm-healthcare" name="osoby_info" color="a8c4ef" x="60" y="555" />
 		<entity schema="dkm-healthcare" name="pacjenci_specjalisci" color="a8c4ef" x="435" y="255" />
+		<entity schema="dkm-healthcare" name="lekarze_placowki" color="a8c4ef" x="795" y="285" />
+		<entity schema="dkm-healthcare" name="lekarze_specjalizacje" color="a8c4ef" x="345" y="585" />
 		<script name="Sql" id="SQL5120034" >
 			<string><![CDATA[DROP SCHEMA public CASCADE;
 
