@@ -56,19 +56,31 @@ insert into "dkm-healthcare".lekarze values ('14082319730',false);
 
 
 --OSOBY_INFO
-update "dkm-healthcare".osoby_info set alergie='brzydkie dowody', przyjmowane_leki='sok z pomaranczy', lekarz_rodzinny='50012913591' where pesel='64050701526';
-update "dkm-healthcare".osoby_info set alergie='zle prowadzone zajecia', przyjmowane_leki='doktor pepper', lekarz_rodzinny='07220302192' where pesel='46101807072';
-update "dkm-healthcare".osoby_info set alergie='szczypka', przyjmowane_leki='herbata z cytryna, dwa razy dziennie', lekarz_rodzinny='07220302192' where pesel='35052119448';
-update "dkm-healthcare".osoby_info set alergie='czekolada, slonce', przyjmowane_leki='krople na oczy', lekarz_rodzinny='50012913591' where pesel='20091508269';
-update "dkm-healthcare".osoby_info set alergie='pijawki, papierosy, alkohol,szkoci', przyjmowane_leki='polopiryna, oeparol', lekarz_rodzinny='07220302192' where pesel='62080713094';
-update "dkm-healthcare".osoby_info set alergie='bialko, woda, cukier', przyjmowane_leki='otrivin, rutinoscorbin', lekarz_rodzinny='48021514432' where pesel='91072415658';
-update "dkm-healthcare".osoby_info set alergie='anglicy, witamina A i B', przyjmowane_leki='gripovita, kreda', lekarz_rodzinny='48021514432' where pesel='05270102489';
-update "dkm-healthcare".osoby_info set alergie='zboza, trawy', przyjmowane_leki='kosiarka, kosa', lekarz_rodzinny='48021514432' where pesel='50090903529';
-update "dkm-healthcare".osoby_info set alergie='polacy, chrzescijanstwo', przyjmowane_leki='Phenobarbital (Luminal) - tabletki, czopki, iniekcje, sól', lekarz_rodzinny='48021514432' where pesel='50090903529';
-update "dkm-healthcare".osoby_info set alergie='dystrybucja zer funkcji dzeta na prostej x=1/2', przyjmowane_leki='dowody, hipotezy', lekarz_rodzinny='50012913591' where pesel='07220302192';
-update "dkm-healthcare".osoby_info set alergie='whiskey', przyjmowane_leki='whiskey', lekarz_rodzinny='50012913591' where pesel='48021514432';
-update "dkm-healthcare".osoby_info set alergie='P != NP', przyjmowane_leki='polymath', lekarz_rodzinny='07220302192' where pesel='50012913591';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591' where pesel='64050701526';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='46101807072';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='35052119448';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591' where pesel='20091508269';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='62080713094';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432' where pesel='91072415658';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432', info='nie ma nerki' where pesel='05270102489';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432', info='ma 3 nogi' where pesel='50090903529';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432' where pesel='50090903529';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591' where pesel='07220302192';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591', info='obojnak' where pesel='48021514432';
+update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='50012913591';
 
+--OSOBY_ALERGIE
+insert into "dkm-healthcare".osoby_alergie values ('64050701526', 'brzydkie_dowody');
+insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'szczypka');
+insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'slonce');
+insert into "dkm-healthcare".osoby_alergie values ('05270102489', 'anglicy');
+
+--OSOBY_LEKI
+insert into "dkm-healthcare".osoby_leki values ('91072415658', 'cukier');
+insert into "dkm-healthcare".osoby_leki values ('35052119448', 'herbata z cytryna, raz dziennie');
+insert into "dkm-healthcare".osoby_leki values ('46101807072', 'viagra');
+insert into "dkm-healthcare".osoby_leki values ('46101807072', 'jogurt');
+insert into "dkm-healthcare".osoby_leki values ('48021514432', 'rutinoscorbin, 3x dziennie');
 
 --PACJENCI_SPECJALISCI
 insert into "dkm-healthcare".pacjenci_specjalisci values ('64050701526', '48021514432');
@@ -117,8 +129,27 @@ insert into "dkm-healthcare".placowki_zabiegi values ( 6, 10);
 
 --RECEPTY
 
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('64050701526', '48021514432', 'czekolada 3x dziennie');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('64050701526', '07220302192', 'czopki');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('46101807072', '07220302192', 'gardlox');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('46101807072', '50012913591', 'ciastka codziennie po 3');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('35052119448', '50012913591', 'jabblko z gruszka');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('20091508269', '07220302192', 'gripex');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('62080713094', '07220302192', 'krople wody 8 razy na godzinę');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('62080713094', '48021514432', 'apap');
+insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('91072415658', '48021514432', 'apap');
+
 
 --SKIEROWANIA
+
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('62080713094', '07220302192', 1);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('62080713094', '48021514432', 1);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('91072415658', '48021514432', 2);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('91072415658', '07220302192', 1);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('91072415658', '50012913591', 3);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('50090903529', '48021514432', 2);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('50090903529', '07220302192', 1);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('14082319730', '48021514432', 3);
 
 
 --LEKARZE_PLACOWKI
