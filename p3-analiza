@@ -2,50 +2,6 @@ Protokół P3 i działanie głównego serwera powiadomień - ANALIZA
 
 Protokół P3 służy do kominikacji między serwerem powiadomień a serwerem (serwerami) baz danych.
 
-Chcielibyśmy, żeby nasza aplikacja miała funkcjonalność wysyłania do pacjentów powiadomień dotyczących wygasania terminów ważności niezrealizowanych recept. 
+Chcielibyśmy, żeby nasza aplikacja miała funkcjonalność wysyłania do pacjentów powiadomień dotyczących wygasania terminów ważności niezrealizowanych recept oraz informowania, czy w danym dniu nastąpiła zmiana w historii choroby (bo to może świadczyć o np. pojawieniu się wyników badań). 
 Poza tym, serwer powiadomień jest "strażnikiem" serwerów baz danych- co pewien czas sprawdza, czy serwery "żyją" - jeśli nie, wysyła wiadomość do administratora.
-
-Schemat rozmowy między serwerami według tego protokołu (po udanym połączeniu) wygląda następująco:
-
-1) N --> BD : "P3"  (tzn na początku określamy, na podstawie jakiego protokołu będziemy rozmawiać)
-
-2) W tym momencie serwer bazy danych pownien sprawdzić u siebie, czy adres IP serwera, który się z nim połączył, zgadza się ze znanym mu adresem jednego z serwerów powiadomień (BEZPIECZEŃSTWO i POUFNOŚĆ). Jeśli tak wysyła on odpowiedź:
-BD --> N : "P3 ok"
-Jeśli nie, odpowiada:
-BD --> N : "I don't know you. Bye!" i zamyka połączenie. 
-
-3) Teraz serwer powiadomień musi się określić, czego chce od serwera baz danych. Może chcieć 2 rzeczy: albo tylko sprawdzić, czy jest ok (tzn "spingować"), albo dostać konkretne informacje z bazy danych, aby wysłać wiadomości do pacjentów.
-
-3.a) tylko "pingujemy":
-N --> BD : "ping"
-Na to serwer baz danych odpowiada "pong. Bye!" i połączenie zostaje zakończone.
-Uwaga!
-W przypadku "pingowania" serwery przesyłaja między sobą krótkie informacje tekstowe. W związku z tym, pod względem implementacji wytarcza użyć tutaj funkcji Scanner obudowującej InputStream zawarty w Sockecie.
-
-3.b) Serwer powiadomień będzie prosił o dwa typy informacji. Po pierwsze, chcemy powiadomić pacjentów, którym dokładnie dzisiaj wygasł termin ważności realizacji jakiejś recepty(recept). Jest to ważne, gdyć wtedy pacjent powinien jak najprędzej umówić się do lekarza ponownie, aby dostać nową receptę.
-W drugim przypadku, prosimy bazę o wszystkie recepty, które przeterminowują się dokładnie za 5 dni. Chodzi o to, aby przypomnieć pacjentom, że powinni udać się do apteki w najbliższym czasie.
-Do rozróżnienia typów recept służy nam enumerator Querytype przyjmujący odpowiednio 2 wartości: EXPIRED i LEFT5.
-W tym przypadku komunikacja potoczy się dalej następująco:
-N --> BD : "give me info"
-BD --> N : "which type?"
-N --> BD : "EXPIRED" / "LEFT5"
-Po tym serwer bazy dancy wykonuje odpowiednie zapytanie, parsuje odpowiedź i przesyła ją do serwera powiadomień w postaci listy obiektów klasy MyNotification (gdzie znajduje się email pacjenta, jego imię i nazwisku oraz identyfikator recepty).
-Ponieważ najlepiej przesłać na OBIEKT, czyli listę, w przypadku 3.b obudowujemy InputStream socketa w ObjectInputStream.
-BD --> N : ArrayList<MyNotification>
-N --> BD : "got it"
-BD --> N : "Bye!"
-
-
-Generalnie serwer powiadomień jest w dużym stopniu odpowiedzialny za DOSTĘPNOŚĆ, stąd proces pingowania baz danych. 
-Jednak, jak wiadomo, może wystąpić problem z połączeniem nawet jeśli ogólnie wszystko jest ok. Stąd z każdym serweram próbujemy się łączyć 100 razy z timeoutem 1s, po nieudanej próbie czekając jeszcze 3 sekundy. Jeśli tyle razy się nie uda, to trzeba już wysłać wiadomość do administratora.
-Jest to ważne, gdyż to zapewnia nam, że ktoś ciągle czuwa nad tym, żeby z serwerami baz danych było wszystko dobrze.
-Serwer powiadomień też ma swojego strażnika, ale o tym będzie w rozdziale o protokole P4 i serwerze NG (strażniku serwera powiadomień).
-
--- tu jeszcze o wysyłaniu maili przez serwer, wątkach na serwerze, itp. --
-
-Czyli podsumowując:
-W projekcie może być poważny problem, że serwery baz danych się zepsują. Stąd potrzebujemy kogoś, kto nam będzie nad tym zuwał i w razie potrzeby powiadomi odpowiednie osoby. To jest właśnie główne zadanie serwera powiadomień. Ponadto, może on jeszcze wysyłać wiadomości do użytkowników.
-Protokół P3 służy zaś do komunikacji między serwerem powiadomień i serwerami baz danych.
-
--- do tego dojdzie jeszcze JavaDoc --
 

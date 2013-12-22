@@ -2,6 +2,7 @@ package protocols;
 
 import java.io.*;
 import java.net.*;
+import java.sql.*;
 import java.util.*;
 
 
@@ -13,135 +14,245 @@ import java.util.*;
 public class P3protocol {
 	
 	/**
-	 * adresses of DataBasis servers
+	 * addresses of DataBasis servers
 	 */
 	
-	ArrayList<InetSocketAddress> serverAdresses;
+	ArrayList<InetSocketAddress> dbAdresses = new ArrayList<>();
+	
+	/**
+	 * addresses of Notification servers
+	 */
+	ArrayList<InetSocketAddress> nAdresses = new ArrayList<>();
+	
+	/**
+	 * timeout for connection
+	 */
 	int timeout = 1000;
 	
 	/**
-	 * Class which includes email adress of Patient and name of medicine.
-	 * Used to send notifications
-	 * Implements Serializable to enable writing to ObjectOutputStream
-	 * @author dudu
-	 *
+	 * enum to determine if we are DBServer or N/NG Server
 	 */
-	
-	public static class MyNotification implements Serializable {
-		
-		private static final long serialVersionUID = -846304785237772868L;
-		String email;
-		String name;
-		String presciption;
-		
-		public MyNotification(String email, String name, String prescription) {
-			this.email = email;
-			this.name = name;
-			this.presciption = prescription;
-		}
-	}
-	
-	public static enum QueryType {
-		EXPIRED, LEFT5;
-	}
-	
-	public P3protocol(ArrayList<InetSocketAddress> serverAdresses) {
-		this.serverAdresses = serverAdresses;
+	public static enum Site {
+		Notify, DB;
 	}
 	
 	/**
-	 * checks if server is available
-	 * @param socket adress of server we want to "ping" 
+	 * enum to determine what do we want from DBServer
+	 */
+	public static enum Request {
+		PING, HISTORY_CHANGE, PRECSR_LEFT5, PRESC_EXPIRE;
+	}
+	
+	
+	Site site;
+	
+	/**
+	 * constructor;
+	 * we fill in it addresses of servers - that can be "hardcoded"
+	 * @param site - we tell protocol as which server we will use it
+	 */
+	public P3protocol(Site site) {
+		this.site = site;
+		
+		//tmp!!
+		dbAdresses.add(new InetSocketAddress("localohost", 2004));
+		dbAdresses.add(new InetSocketAddress("localohost", 2005));
+		
+		dbAdresses.add(new InetSocketAddress("localohost", 2006));
+		dbAdresses.add(new InetSocketAddress("localohost", 2007));
+	}
+	
+	/**
+	 * The most important method. Here is implemented whole communication.
+	 * @param socket
+	 * @param request
+	 * @return null if we are in DBServer or if error occurs. Otherwise Boolean while pinging and ResultSet while asking DB about some info.  
+	 *
+	 * @throws Exception
+	 */
+	
+	public Object talk(Socket socket, Request request) throws Exception {
+		PrintWriter wr = new PrintWriter (socket.getOutputStream());
+		Scanner sc = new Scanner (socket.getInputStream());
+		Object obj = null;
+		
+		if (site == Site.DB) {
+			boolean flag = false;
+			for (InetSocketAddress addr : nAdresses) {
+				if (socket.getInetAddress().equals(addr.getAddress())) {
+					flag = true;
+				}
+			}
+			if (!flag) {
+				wr.write("I don't know you and Mom always told me I mustn't talk to the stranger! Bye!");
+				sc.close(); wr.close();
+				return null;
+			}
+			else wr.write("P3 Protocol. What do you want?");
+			
+			String ans = sc.nextLine();
+			if (ans.equals("Ping!")) {
+				wr.write("Pong!");
+				sc.close(); wr.close();
+				return null;
+			}
+			else if (ans.equals("Give me info!")) {
+				for (int i=0; i<10; i++) {
+					wr.write("Ok, give me querry");
+					String sql = sc.nextLine();
+					ResultSet result = null;
+					Statement stat = null;
+					try {
+						result = stat.executeQuery(sql); // establish connection with DataBasis!!!
+					} catch (Exception e) {
+						result = null;
+					}
+					wr.close();
+					ObjectOutputStream obstr = new ObjectOutputStream(socket.getOutputStream());
+					obstr.writeObject(result);
+					obstr.close();
+					wr = new PrintWriter(socket.getOutputStream());
+					String ans2 = sc.nextLine();
+					if (ans2.equals("Ok, got it")) {
+						wr.write("Ok, bye!");
+						sc.close(); wr.close();
+						return null;
+					} 
+					else if (ans2.equals("Something went wrong!")) {
+						continue;
+					}
+					else {
+						wr.write("Protocol error! Bye!");
+						sc.close(); wr.close();
+						return null;
+					}
+				}
+				wr.write("I can't. Tell it to admin. Bye!");
+				sc.close(); wr.close();
+				return null;
+			}
+			else {
+				sc.close(); wr.close();
+				throw (new ProtocolException());
+			}
+			
+		} else { // site = Notify
+			
+			wr.write("P3");
+			if (!sc.nextLine().equals("P3 Protocol. What do you want?")) {
+				sc.close(); wr.close();
+				return null;
+			}
+			if (request == Request.PING) {
+				wr.write("Ping!");
+				if (!sc.nextLine().equals("Pong!")) {
+					sc.close(); wr.close();
+					return null;
+				}
+				sc.close(); wr.close();
+				return new Boolean(true);
+			} else {
+				wr.write("Give me info!");
+				String s = sc.nextLine();
+				while (s.equals("Ok, give me querry")) {
+					String sql = "";
+					if (request == Request.HISTORY_CHANGE) {
+						sql = "select * from \"dkm-healthcare\".historia_powiadomienia";
+					} else if (request == Request.PRECSR_LEFT5) {
+						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_5";
+					} else {
+						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_5";
+					}
+					wr.write(sql);
+					sc.close();
+					ObjectInputStream obstr = new ObjectInputStream(socket.getInputStream());
+					obj = obstr.readObject();
+					obstr.close();
+					sc = new Scanner (socket.getInputStream());
+					if (obj != null && obj instanceof ResultSet) {
+						wr.write("Ok, got it");
+					} else {
+						wr.write("Something went wrong!");
+					}
+					s = sc.nextLine();
+				}
+				wr.close(); sc.close();
+				if (s.equals("Ok, bye!")) {
+					return (ResultSet) obj;
+				} else return null;
+				
+			}
+		}
+	}
+	
+	/**
+	 * checks if DBservers are available
 	 * @return "availability"
 	 */
 	
-	public boolean pingServer(InetSocketAddress server) {
-		Socket socket = new Socket();
-		for (int i=0; i<100; i++) {
-			try {
-				socket.connect(server, timeout);
-				PrintWriter os = new PrintWriter(socket.getOutputStream());
-				Scanner is = new Scanner (socket.getInputStream());
-				
-				os.println("P3");
-				os.flush();
-				String s = is.next();
-				if (s.equals("I don't know you. Bye!")) {
-					is.close(); 
-					socket.close();
-					return false;
-				}
-				
-				
-				os.println("ping");
-				os.flush();
-				is.next();
-				
-				os.close(); is.close();
-				socket.close();
-				return true;
-			} catch (Exception e) {
-				try {
-					Thread.sleep(3000);
-				} catch (Exception e1) {
-				}
-			}
-		}
-		return false;
-	}
 	
-	/**
-	 * asks DataBasis server about which prescriptions we should send notifications (together with email adresses and names of patients) 
-	 * @param list where we want to store answer from server and type of query
-	 * @return adress of server we managed to connect with
-	 */
-	
-	@SuppressWarnings("unchecked")
-	public InetSocketAddress getPrescriptions (ArrayList<MyNotification> nots, QueryType type) {
-		Socket socket = new Socket();
-		for (InetSocketAddress adr : serverAdresses) {
+	public ArrayList<Boolean> pingServers() {
+		ArrayList<Boolean> list = new ArrayList<>();
+		for (InetSocketAddress addr : dbAdresses) {
+			Socket socket = new Socket();
+			boolean flag = false;
 			for (int i=0; i<100; i++) {
-				
 				try {
-					socket.connect(adr, timeout);
-					PrintWriter os = new PrintWriter(socket.getOutputStream());
-					ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
-					
-					os.println("P3");
-					os.flush();
-					Object obj = is.readObject();
-					if (((String) obj).equals("I don't know you. Bye!")) {
-						socket.close();
+					socket.connect(addr, timeout);
+					Boolean b = (Boolean) talk(socket, Request.PING);
+					if (b.equals(Boolean.TRUE)) {
+						list.add(b);
+						flag = true;
 						break;
-						// powiadom admina że coś się zepsuło. Tego serwera nie ma co dalej próbować
-					}
+					} else continue;
 					
-					os.println("give me info");
-					os.flush();
-					is.readObject();
-					
-					os.println(type.toString());
-					os.flush();
-					nots = (ArrayList<MyNotification>) is.readObject();
-					
-					os.println("got it");
-					os.flush();
-					is.readObject();
-					
-					os.close(); is.close();
-					socket.close();
-					return adr;
 				} catch (Exception e) {
 					try {
 						Thread.sleep(3000);
 					} catch (Exception e1) {
 					}
-					continue;
 				}
-				
+			}
+			if (!flag) {
+				list.add(Boolean.FALSE);
 			}
 		}
-		return null;
+		return list;
+	}
+	
+	/**
+	 * asks DataBasis servers about  prescriptions we should send notifications (together with email addresses and names of patients) or last modified history 
+	 * @param enum to determine what do we want to ask about
+	 * @return List of resultSet from DBServers (null on the beginning)
+	 */
+	
+	public ArrayList<ResultSet> getInfo(Request request) {
+		ArrayList<ResultSet> list = new ArrayList<>();
+		for (InetSocketAddress addr : dbAdresses) {
+			Socket socket = new Socket();
+			boolean flag = false;
+			for (int i=0; i<100; i++) {
+				try {
+					socket.connect(addr, timeout);
+					ResultSet b = (ResultSet) talk(socket, request);
+					if (b != null) {
+						list.add(b);
+						flag = true;
+						break;
+					} else continue;
+					
+				} catch (Exception e) {
+					try {
+						Thread.sleep(3000);
+					} catch (Exception e1) {
+					}
+				}
+			}
+			if (!flag) {
+				list.add(null);
+			}
+		}
+		return list;
 	}
 	
 	public static void main(String[] args) {
