@@ -17,12 +17,12 @@ public class P3protocol {
 	 * addresses of DataBasis servers
 	 */
 	
-	ArrayList<InetSocketAddress> dbAdresses = new ArrayList<>();
+	public ArrayList<InetSocketAddress> dbAdresses = new ArrayList<>();
 	
 	/**
 	 * addresses of Notification servers
 	 */
-	ArrayList<InetSocketAddress> nAdresses = new ArrayList<>();
+	public ArrayList<InetSocketAddress> nAdresses = new ArrayList<>();
 	
 	/**
 	 * timeout for connection
@@ -58,20 +58,19 @@ public class P3protocol {
 		dbAdresses.add(new InetSocketAddress("localohost", 2004));
 		dbAdresses.add(new InetSocketAddress("localohost", 2005));
 		
-		dbAdresses.add(new InetSocketAddress("localohost", 2006));
-		dbAdresses.add(new InetSocketAddress("localohost", 2007));
+		nAdresses.add(new InetSocketAddress("localohost", 2006));
+		nAdresses.add(new InetSocketAddress("localohost", 2007));
 	}
 	
 	/**
 	 * The most important method. Here is implemented whole communication.
-	 * @param socket
-	 * @param request
+	 * @param socket, request, connection with Data Basis on DB Server
 	 * @return null if we are in DBServer or if error occurs. Otherwise Boolean while pinging and ResultSet while asking DB about some info.  
 	 *
 	 * @throws Exception
 	 */
 	
-	public Object talk(Socket socket, Request request) throws Exception {
+	public Object talk(Socket socket, Request request, Connection con) throws Exception {
 		PrintWriter wr = new PrintWriter (socket.getOutputStream());
 		Scanner sc = new Scanner (socket.getInputStream());
 		Object obj = null;
@@ -101,9 +100,9 @@ public class P3protocol {
 					wr.write("Ok, give me querry");
 					String sql = sc.nextLine();
 					ResultSet result = null;
-					Statement stat = null;
+					Statement stat = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 					try {
-						result = stat.executeQuery(sql); // establish connection with DataBasis!!!
+						result = stat.executeQuery(sql);
 					} catch (Exception e) {
 						result = null;
 					}
@@ -199,7 +198,7 @@ public class P3protocol {
 			for (int i=0; i<100; i++) {
 				try {
 					socket.connect(addr, timeout);
-					Boolean b = (Boolean) talk(socket, Request.PING);
+					Boolean b = (Boolean) talk(socket, Request.PING, null);
 					if (b.equals(Boolean.TRUE)) {
 						list.add(b);
 						flag = true;
@@ -234,7 +233,7 @@ public class P3protocol {
 			for (int i=0; i<100; i++) {
 				try {
 					socket.connect(addr, timeout);
-					ResultSet b = (ResultSet) talk(socket, request);
+					ResultSet b = (ResultSet) talk(socket, request, null);
 					if (b != null) {
 						list.add(b);
 						flag = true;
@@ -255,8 +254,6 @@ public class P3protocol {
 		return list;
 	}
 	
-	public static void main(String[] args) {
-		System.out.println("tmp");
-	}
+	
 
 }
