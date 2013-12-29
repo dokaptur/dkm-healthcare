@@ -51,7 +51,9 @@ public class P3protocol {
 	 * we fill in it addresses of servers - that can be "hardcoded"
 	 * @param site - we tell protocol as which server we will use it
 	 */
-	public P3protocol(Site site) {
+	
+	
+	public  P3protocol(Site site) {
 		this.site = site;
 		
 		//tmp!!
@@ -160,7 +162,7 @@ public class P3protocol {
 					} else if (request == Request.PRECSR_LEFT5) {
 						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_5";
 					} else {
-						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_5";
+						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_dzis";
 					}
 					wr.write(sql);
 					sc.close();
@@ -222,23 +224,19 @@ public class P3protocol {
 	/**
 	 * asks DataBasis servers about  prescriptions we should send notifications (together with email addresses and names of patients) or last modified history 
 	 * @param enum to determine what do we want to ask about
-	 * @return List of resultSet from DBServers (null on the beginning)
+	 * @return ResultSet from DBServers 
 	 */
 	
-	public ArrayList<ResultSet> getInfo(Request request) {
-		ArrayList<ResultSet> list = new ArrayList<>();
+	public ResultSet getInfo(Request request) {
 		for (InetSocketAddress addr : dbAdresses) {
 			Socket socket = new Socket();
-			boolean flag = false;
 			for (int i=0; i<100; i++) {
 				try {
 					socket.connect(addr, timeout);
 					ResultSet b = (ResultSet) talk(socket, request, null);
 					if (b != null) {
-						list.add(b);
-						flag = true;
-						break;
-					} else continue;
+						return b;
+					}
 					
 				} catch (Exception e) {
 					try {
@@ -247,11 +245,8 @@ public class P3protocol {
 					}
 				}
 			}
-			if (!flag) {
-				list.add(null);
-			}
 		}
-		return list;
+		return null;
 	}
 	
 	
