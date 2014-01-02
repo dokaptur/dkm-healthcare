@@ -1,7 +1,42 @@
-Protokół P3 i działanie głównego serwera powiadomień - ANALIZA
-
-Protokół P3 służy do kominikacji między serwerem powiadomień a serwerem (serwerami) baz danych.
+Protokół P3 i działanie głównego serwera powiadomień - 
+ANALIZA I DOKUMENTACJA TECHNICZNA 
 
 Chcielibyśmy, żeby nasza aplikacja miała funkcjonalność wysyłania do pacjentów powiadomień dotyczących wygasania terminów ważności niezrealizowanych recept oraz informowania, czy w danym dniu nastąpiła zmiana w historii choroby (bo to może świadczyć o np. pojawieniu się wyników badań). 
-Poza tym, serwer powiadomień jest "strażnikiem" serwerów baz danych- co pewien czas sprawdza, czy serwery "żyją" - jeśli nie, wysyła wiadomość do administratora.
+Poza tym, serwer powiadomień jest "strażnikiem" serwerów baz danych- co pewien czas sprawdza, czy serwery "żyją" - jeśli nie, wysyła wiadomość do administratora. 
+
+Do tego celu służy właśnie protokół P3. Ma on następujące cechy:
+
+1. ASYMETRIA
+Nasz protokół jest niesymatryczny. To znaczy, posługują się nim serwery powiadomień, które to zawsze rozpoczynają "rozmowę", oraz serwery baz danych, które są stroną odbierającą połączenie. Jest to zrobione w ten sposób, gdyż serwery baz danych są generalnie dużo bardziej obciążone niż serwery powiadomień, stąd nasza decyzja.
+Dlatego też w klasie P3protocol zaimplementowany jest publiczny statyczny enumerator Site, i pole tego własnie typu, którego wartość nadaje się w trakcie tworzenia instancji klasy. Dzięki temu w trakcie "rozmowy" (funkcja talk) możemy odwoływać się od razu do informacji, którym serwerem obecnie jesteśmy (klasę P3protocol tworzy odpowiednio dla siebie serwer powiadomień przed rozpoczęciem rozmowy i serwer baz danych po odczytaniu z socketa informacji, że  interakcja ma być dokonywana wedle prorokołu P3).
+
+2. TCP
+Protokół P3 oparty jest na protokole TCP w warstwie sieci.
+
+3. SOCKETY i STRUMIENIE DANYCH
+Rozmowa wedle protokołu P3 odbywa się poprzez odbieranie i wysyłanie strumienia danych (głównie teksowego) do Socketa. W przypadku pytań o konkretne informacje z bazy danych, w pewnym momencie otwierane są strumienie do przesyłania obiektów (na tym samym Sockecie; wymaga to więc wcześniejszego zamknięcia strumienia tekstowego) i serwer bazy danych zwraca obiekt klasy ResultSet. 
+
+4. STANOWOŚĆ
+Protokół P3 jest protokołem stanowym. Jest to wygodne, gdyż rozmowy są stosunkowo krótkie i nie kosztuje nas wiele pamiętanie w jakim momencie rozmowy jesteśmy. Dlatego też powstała klasa ServerSocketThread, która każdą rozmowę otwiera w osobnym wątku. Jest to też o tyle wygodne, gdyż nie chcemy podawać informacji z bazy danych byle komu. Ale o tym w następnym podpunkcie.
+
+5. POUFNOŚĆ
+Protokół P3 po stronie bazy danych sprawdza, czy pytającym jest serwer powiadomień. Serwerów powiadomień nie jest wiele, stąd też w protokole są zahardkodowane adresy IP serwerów powiadomień. Po rozpoczęciu rozmowy (w trakcie "handshakingu") serwery baz danych sprawdzają czy adres IP pytającego zgadza się z którymś ze znanych mu adresów serwerów powiadomień. Jeśli tak nie jest, rozmowa zostaje przerwana.
+
+6. DOSTĘPNOŚĆ i INTEGRALNOŚĆ (????)
+Nie chcielibyśmy, aby z jakiegoś błahego powodu serwer powiadomień niepokoił administartora informacjami o problemach z innymi serwerami lub z powodu chwilowej niedyspozycji któregoś z serwerów baz danych nie wysłał pacjentom obiecanych informacji. W związku z tym w klasie portokołu zaimplementowane są funkcje, których używają serwery powiadomień, aby w jak najbardziej wiarygodny sposób ściągąć odpowiednie informacje  z serwerów baz danych (funkcje pingServers i getInfo).
+Generalnie podczas "pingowania" serwerów baz danych serwer powiadomień próbuje nawiązać połączenie i przeprowadzić udaną rozmowę wedle protokołu P3 z każdym serwerem 100 razy lub do skutku. Jeśli połączenie się nie uda, odczekuje on 3 sekundy przed ponowieniem próby (licząc na to, że serwer może ożyje). Dopiero po 100 nieudanych próbach serwer powiadomień "poddaje się" i powiadamia administratora, że coś jest nie w porządku. 
+Podobnie jest w przypadku ściągania odpowiednich informacji. Różnica jest jednak taka, że jeśli w przypadku "pingowania" chcemy zdobyć informację o każdym serwerze baz danych, tutaj wystarczy nam z jednego. Dlatego jeśli np uda nam się dostać to co chcemy z jednej bazy danych, pozostałych już nie niepokoimy.
+
+7. SKALOWALNOŚĆ
+Dla wygody adresy serwerów baz danych są także zahardcodowane w klasie protokołu P3. 
+Na potrzeby skalowalności są jednak w liście i można łatwo podmienić, aby lista ta była wypełniana z jakiegoś pliku konfiguracyjnego.
+
+
+Wszystkie powyższe funkcjonalności i cechy zaimplementowane sa bezpośrednio  w klasie P3protocol. Dzięki temu serwer N nie musi się już troszczyć o implementację funkcji do poszczególnych WIELOKROTNYCH zapytań. Chcielibyśmy natomiast, aby funkcje włączały się zawsze regularnie o odpowiednich godzinach. Dlatego też klasa NServer ma dosyć specyficzną budowę. 
+Wynika to z tego, że świetną klasą biblioteczną Javy do takich celów jest klasa Timer, która w regularnych odstępach czasu tworzy i uruchomia (w osobnym wątku) klasę rozszerzającą klasę TimerTask. Dlatego każda funkcjonalność (pytanie o zmodyfikowane historie choroby, wygasające recepty oraz pingowanie) zapakowana jest w wewnętrzną, publiczną klasę statyczną, rozszerzającą TimerTask.
+
+Ponadto NServer ma zaimplementowane funcje wysyłające wiadomości, korzystające z biblioteki JavaMail.
+
+Serwer N musi także nasłuchiwać, gdyż serwer NG będzie z nim rozmawiał przy użyciu protokołu P4. Stąd też w klasie main znajduje się ServerSocket, który po nawiązaniu połączenia tworzy klasę ServerSocketThread.
+
 

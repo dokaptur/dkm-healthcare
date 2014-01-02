@@ -1,7 +1,7 @@
 SYSTEM INFORMACJI LEKARZA I PACJENTA - ANALIZA PROJEKTU
 
-Nasz projekt, jak sama nazwa wskazuje, ma być systemem informacyjnym dla lekarzy i pacjentów. Każda osoba może zgłosić u lekarza rodzinnego, że chce dostać konto w tym systemie, wtedy lekarz rodzinny kontaktuje się z adminami i konto zostaje założone (hasło do odebrania u lekarza rodzinnego). Oczywiście później można to hasło zmienić.
-Pacjent może po zalogowaniu do systemu dowiedzieć się różnych rzeczy dotyczących jego zdrowia (recepty, skierowania, alergie, prowadzący lekarze specjaliści itp). Ponadto, mając skierowanie na jakis zabieg, może znaleźć numery telefonów do placówek w swoim mieście, które dane zabiegi wykonują.
+Nasz projekt, jak sama nazwa wskazuje, ma być systemem informacyjnym dla lekarzy i pacjentów. Każda osoba może zgłosić u lekarza rodzinnego, że chce dostać konto w tym systemie, wtedy lekarz rodzinny kontaktuje się z administratorem i konto zostaje założone (hasło do odebrania u lekarza rodzinnego). Oczywiście później można to hasło zmienić.
+Pacjent może po zalogowaniu do systemu dowiedzieć się różnych rzeczy dotyczących jego zdrowia (recepty, skierowania, alergie, prowadzący lekarze specjaliści itp). Może także ściągnąć swoją historię choroby jako folder zip. Tam też znajdują się wszystkie wyniki jego badań. Ponadto, mając skierowanie na jakis zabieg, może znaleźć numery telefonów do placówek w swoim mieście, które dane zabiegi wykonują.
 Jeżeli osoba która się loguje jest dodatkowo aptekarzem, może (jak pozna nr recepty) "zrealizować" podana przez pacjenta receptę.
 Osoba będąca lekarzem, może dodatkowo doweidziec się wszystkiego o swoich pacjentach, wystawiać recepty, skierowania, a także modyfikować historię choroby.
 
@@ -22,12 +22,10 @@ P1. a) logowanie: klient wpisuje pesel, hasło
 		b) zapytanie: przy każdym zapytaniu przesyłamy (n+1) iterację hashu hasła  
 
 P2. Gdy tylko nastąpi zmiana w bazie danych na serwerze BDi, wysyła on pinga" do serwera BD(i^1), a jak "ping" się powiedzie, to przesyła powiadomienia o zmianie. Serwer "otrzymujący" wiadomości dokonuje odpowiedniej aktualizaji po czym wysyła potwierdzenie serwerowi, od którego otrzymał wiadomość. Gdy serwer DB(i^1) nie odpowiada na pinga, serwer DBi pinguje aż się uda, w międzyczase zapisując zmiany do jakiegoś pliku tekstowego, który wyśle, gdy serwer DB(i^1) powróci. (Serwer wchodzący online czeka na plik tekstowy ze zmianami zanim zacznie obaługiwać klientów).
-//pytanie bezpieczeństwo: czy zgodność ip wystarcza (czy można się podszyć pod ip)? TAK
 
-P3. Serwer N (lub w przypadku sytuacji (*) NG) dwa razy dziennie (o 12 i 24) pyta serwer BD1 o wszytskich pacjentów, u których w okresie od ostatniego pytania wystąpiły zmiany w historii choroby, po czym wysyła powiadomienia mailem do tych pacjentów (protokół SMTP). Ponadto o 1 w nocy pyta o recepty, które przeterminują sie dokładnie za 5 dni lub przeterminowały się dnia poprzedniego, i także wysyła odpowiednie powiadomienia. Jeżeli jest problem z połączeniem się z BD1, N próbuje zapytać o to samo BD2.
+P3. Serwer N (lub w przypadku sytuacji (*) NG) raz dziennie  pyta serwer BD1 o wszytskich pacjentów, u których w okresie od ostatniego pytania wystąpiły zmiany w historii choroby, po czym wysyła powiadomienia mailem do tych pacjentów (protokół SMTP). Ponadto raz dziennie pyta o recepty, które przeterminują sie dokładnie za 5 dni lub dzisiaj, i także wysyła odpowiednie powiadomienia. Jeżeli jest problem z połączeniem się z BD1, N próbuje zapytać o to samo BD2.
 
 Ponadto, N co godzinę pinguje oba serwery baz danych (przez 100 razy co 3 sekundy lub do osiągnięcia sukcesu) i jeśli z któryms serwerem się nie udało, od razu wysyła widomość do administratorów.
 
 P4. Zawsze 5 min przed planowaną akcją serwera N, serwer NG wysyła "pinga" do N żeby sprawdzić, czy u niego wszystko w porządku. Jeśli się nie uda, przez następne 3 min NG próbuje co 5 sekund połaczyć się z N (jak się uda to przestajemy). Jeśli się nie udało, wtedy własnie mamy sytuację (*) i NG wykonuje zadanie N. 
-Poza tym, jeśli z N było wszystko dobrze i to on wykonywał akcję, NG co 30 sekund wysyła do niego pytanie, czy już skończył, na co N mu odpowiada ("TAK" lub "NIE").
-Jeśli połączenie się urwie (znowu pytania co 5 sekund przez 3 min) zanim NG dostanie odpowiedź twierdzącą, NG wykonuje całe zadanie N od początku.
+
