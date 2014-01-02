@@ -24,13 +24,35 @@ import javax.mail.internet.MimeMessage;
 public class NServer {
 	
 	/**
-	 * email to admin
+	 * Fields to get time for Timer. They are static, because NGServer uses those as well. 
+	 */
+	
+	public static Calendar midnight;
+	public static Calendar pm4;
+	
+	
+	static {
+		midnight.set(Calendar.HOUR, 1);
+		midnight.set(Calendar.AM_PM, Calendar.AM);
+		midnight.set(Calendar.MINUTE, 0);
+		midnight.set(Calendar.SECOND, 0);
+		
+		pm4.set(Calendar.HOUR, 4);
+		pm4.set(Calendar.AM_PM, Calendar.PM);
+		pm4.set(Calendar.MINUTE, 0);
+		pm4.set(Calendar.SECOND, 0);
+	}
+	
+	/**
+	 * administrator's email address
 	 */
 	
 	public static String adminMail = "dokaptur@gmail.com";
 	
 	/**
-	 * class to ping DB Servers; extends TimerTask to run it periodically with Timer
+	 * Class to ping DB Servers; extends TimerTask to run it periodically with Timer
+	 * Creates an instance of P3protocol and run function PingServers.
+	 * Then, if in returned ArrayList false value occurs, runs function to notify administrator
 	 * @author dudu
 	 *
 	 */
@@ -49,6 +71,13 @@ public class NServer {
 		}
 	}
 	
+	/**
+	 * Class to send notifications about changes in history.
+	 * Similar to Pinger
+	 * @author dudu
+	 *
+	 */
+	
 	public static class History_Notifier extends TimerTask {
 
 		@Override
@@ -59,6 +88,13 @@ public class NServer {
 		}
 		
 	}
+	
+	/**
+	 * Class to send notifications about prescriptions expiring within 5 days.
+	 * Similar to Pinger
+	 * @author dudu
+	 *
+	 */
 	
 	public static class Left5_Notifier extends TimerTask {
 
@@ -71,6 +107,13 @@ public class NServer {
 		
 	}
 	
+	/**
+	 * Class to send notifications about  prescriptions expiring today.
+	 * Similar to Pinger
+	 * @author dudu
+	 *
+	 */
+	
 	public static class Expire_Notifier extends TimerTask {
 
 		@Override
@@ -82,7 +125,14 @@ public class NServer {
 		
 	}
 	
-	public static void SendMail(String email, String mailtext) {
+	/**
+	 * Static class to send mail. Mail is sent from "adminMail" to "email".
+	 * It is static, because NGServer uses it as well.
+	 * @param email
+	 * @param mailtext
+	 */
+	
+	private static void SendMail(String email, String mailtext) {
 		String host = "smtp.gmail.com";
 	    String username = "dkm.dkmhealthcare";
 	    String password = " ";// here comes the password. I don't want to public in on GitHub ;)
@@ -113,6 +163,12 @@ public class NServer {
 	    }
 	}
 	
+	/**
+	 * Class to notify patients. It takes info from ResultSet, prepares message (which depends on Request) and then runs SendMail
+	 * @param rs
+	 * @param req
+	 */
+	
 	public static void NotifyPatients (ResultSet rs, Request req) {
 		if (rs == null) return;
 		try {
@@ -139,6 +195,11 @@ public class NServer {
 		}
 	}
 	
+	/**
+	 * Class to notify administrator about problems with server 
+	 * @param addr (address of broken server) 
+	 */
+	
 	public static void NotifyAdmin(InetSocketAddress addr) {
 		String email = "dkm.dkmhealthcare@gmail.com";
 		String mailtext = "An error occured on Server " + addr.getHostString() + " ! \n Check it as soon as possible!";
@@ -149,19 +210,8 @@ public class NServer {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		
-		Calendar midnight = Calendar.getInstance();
-		midnight.set(Calendar.HOUR, 1);
-		midnight.set(Calendar.AM_PM, Calendar.AM);
-		midnight.set(Calendar.MINUTE, 0);
-		midnight.set(Calendar.SECOND, 0);
 		
-		Calendar pm4 = Calendar.getInstance();
-		pm4.set(Calendar.HOUR, 1);
-		pm4.set(Calendar.AM_PM, Calendar.AM);
-		pm4.set(Calendar.MINUTE, 0);
-		pm4.set(Calendar.SECOND, 0);
-		
-		(new Timer()).scheduleAtFixedRate(new Pinger(), (new Date()).getTime(), 3600 * 1000);
+		(new Timer()).scheduleAtFixedRate(new Pinger(), midnight.getTime(), 3600 * 1000);
 		
 		(new Timer()).scheduleAtFixedRate(new History_Notifier(), pm4.getTime(), 3600 * 1000 * 12);
 		
