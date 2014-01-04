@@ -17,7 +17,7 @@ import protocols.P3protocol.Site;
 public class ServerSocketThread implements Runnable {
 	
 	/**
-	 * enum to determine of server
+	 * enum to determine server
 	 * @author dudu
 	 *
 	 */
