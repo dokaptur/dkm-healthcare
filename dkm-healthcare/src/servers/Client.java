@@ -8,6 +8,11 @@ import others.*;
 
 public class Client {
 	
+	public static ResultSet getRSbyP1(String query) {
+		ResultSet rs = null; //get by P1
+		return rs;
+	}
+	
 	public static void main(String[] args) {
 		
 		boolean isDoctor = false;
@@ -22,7 +27,7 @@ public class Client {
 		//log in with p1 protocol
 		
 		String askIfDoctor = "select count(*) from \"dkm-healthcare\".lekarze where id_lekarz = " + pesel + ";";
-		ResultSet rs = null; // ask with p1
+		ResultSet rs = getRSbyP1(askIfDoctor);
 		
 		try {
 			if (rs.next()) {
@@ -36,7 +41,7 @@ public class Client {
 		}
 		
 		String askIfPharmacist = "select aptekarz from \"dkm-healthcare\".osoby where pesel = " + pesel + ";";
-		// get answer to rs - P1 protocol
+		rs = getRSbyP1(askIfPharmacist);
 		
 		try {
 			if (rs.next()) {
@@ -49,11 +54,11 @@ public class Client {
 		}
 		
 		while(true) {
-			System.out.println("Witamy w systemie dkm-healthcare!\n");
-			System.out.println("Aby pracować w trybie pacjenta, wprowadź 1 \n");
-			if (isDoctor) System.out.println("Aby pracować w trybie lekarza, wprowadź 2 \n");
-			if (isPharm) System.out.println("Aby pracować w trybie aptekarza, wprowadź 3 \n");
-			System.out.println("Aby zakończyć program, wprowadź 4 \n");
+			System.out.println("Witamy w systemie dkm-healthcare! \n");
+			System.out.println("Aby pracować w trybie pacjenta, wprowadź 1");
+			if (isDoctor) System.out.println("Aby pracować w trybie lekarza, wprowadź 2");
+			if (isPharm) System.out.println("Aby pracować w trybie aptekarza, wprowadź 3");
+			System.out.println("Aby zakończyć program, wprowadź 4");
 			
 			int i = sc.nextInt();
 			switch(i) {
