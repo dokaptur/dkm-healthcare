@@ -1,0 +1,30 @@
+Protokół P4 i działanie strażnika serwera powiadomień (NGServer) - 
+ANALIZA I DOKUMENTACJA TECHNICZNA 
+
+W rozdziale o protokole P3 i serwerze powiadomień opisaliśmy, jak to wsyztsko działa. Nie da się ukryć, że ktoś taki jak serwer powiadomień jest niezwykle potrzebny, gdyż to on pilnuje nam, aby ludzie (w szczególości administratozy) dowiadywali się o ważnych rzeczach. No ale co, jeśli coś się stanie naszemu serwerowi powiadomień? Wtedy nikt nas o tym nie poinformuje! Stąd też pomyśleliśmy o stworzeniu jeszcze jednego serwera, mianowicie Strażnika Serwera Powiadomień (NGServer). Jego zadaniem jest sprawdzanie zawsze na 5 minut przed planowaną akcją serwera powiadomień, czy wszystko z nim w porządku. Jeśli okaże się, że nie, wtedy NGServer wykonuje zadanie, które normalnie robi NServer (dopuszczamy możliwość, że działanie NServera zostanie zduplikowane- nie powinno dziać się to często, a lepiej dostac powiadomienie dwukrotnie aniżeli wcale).
+
+Ponadto, raz na dobę NGServer wysyła administratorom wiadomość, że u niego wszystko dobrze.
+
+Cała komunikacja pomiędzy głównym serwerem powiadomień a strażnikiem odbywa się przy pomocy prostego protokołu P4, który w zasadzie jest bardzo podobny do protokołu P3 (tylko o wiele krótszy). Warto jednak wspomnieć o jego następujących cechach:
+
+1. ASYMATRIA
+Podobnie jak P3, jest on niesymetryczny. To znaczy, rozpoczynającym rozmowę jest zawsze NGServer. Rozmowa polega na wymienieniu kilku zdań, przysłowiowym "spingowaniu" głównego serwera powiadomień.
+
+2. TCP
+Protokół P4 oparty jest na protokole TCP w warstwie sieci.
+
+3. SOCKETY i STRUMIENIE DANYCH
+Rozmowa wedle protokołu P4 odbywa się poprzez odbieranie i wysyłanie tekstowego strumienia danych do Socketa. 
+
+4. STANOWOŚĆ
+Protokół P4 jest protokołem stanowym. Stosuje się tutaj taki sam argument jak w przypadku protokołu P3.
+
+5. POUFNOŚĆ
+W przypadku protokołu P4 nie potrzebujemy specjalnie martwić się o poufność. W końcu jedyna informacja jaką przez ten protokół dostajemy to to, czy nasz serwer żyje. Toteż nie mamy tutaj zaimplementowanych jakiś specjalnych zabezpieczeń.
+
+6. DOSTĘPNOŚĆ i INTEGRALNOŚĆ (????)
+Jak już napisaliśmy wcześniej, dopuszczamy możliwość zduplikowania powiadomień. Chcielibyśmy jednak zredukować takie sytuacje do minimum. Stąd NGServer nie ogranicza się do jednej próby połączenia i przeprowadzenia rozmowy. W klasie P4protocol zaimplementowana została specjalna metoda, która próbuje połączyć się i porozmawiać z serwerem powiadomień 100 razy lub do skutku. Po każdym nieudanym połączeniu NGServer odczekuje 3 sekundy mając nadzieję, że NServer ożyje. Dopiero jak 100 razy poniesiemy porażkę, NGServer pzejmuje działanie NServera.
+
+
+Klasa implementująca NGServer jest bardzo podobna do klasy NServer. Także składa się z kilku statycznych klas wewntętrznych rozszerzających TimerTask - każda odpowiada innej działalności NServera, która powinna być zabezpieczona przez NGServer. Dodatkowo jeszcze w jedna z takich statycznych klas opakowane jest wysyłanie codzinnego raportu (tzn potwierdzenia, że się żyje) do administratora przez NGServer.
+Z ciekawych rzeczy warto jeszcze wspomnieć, że NGServer wykorzystuje zdefiniowane w NServarze obiekty klasy Calendar, aby rzeczywiście wykonywać "pingowanie" NServera na 5 minut przed zaplanowaną akcją.
