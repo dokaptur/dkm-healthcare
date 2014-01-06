@@ -4,20 +4,49 @@ import java.io.PrintWriter;
 import java.net.*;
 import java.util.Scanner;
 
+/**
+ * An application-level protocol for communication between NSever (notifications server) and NGServer (NServer's Guardian).
+ * @author dudu
+ *
+ */
 
 public class P4protocol {
+	
+	/**
+	 * enumerator to determine if instance of P4protocol class has been created by NServer or NGServer
+	 * @author dudu
+	 *
+	 */
 	
 	public static enum P4Site {
 		N, NG;
 	}
 	
+	/**
+	 * field of P4Site
+	 */
 	public P4Site site;
 	
+	/**
+	 * address of NServer
+	 */
 	public static InetSocketAddress nserveraddr = new InetSocketAddress("localhost", 2006);
 	
+	/**
+	 * constructor
+	 * @param site (we want to know of we are in NServer or NGServer
+	 */
 	public P4protocol (P4Site site) {
 		this.site = site;
 	}
+	
+	/**
+	 * The most important function of this class.
+	 * It implements how servers talk to each other.
+	 * @param socket
+	 * @return true if everything was ok. False otherwise
+	 * @throws Exception
+	 */
 	
 	public boolean talk(Socket socket) throws Exception {
 		PrintWriter wr = new PrintWriter (socket.getOutputStream());
@@ -44,6 +73,12 @@ public class P4protocol {
 			return false;
 		}
 	}
+	
+	/**
+	 * Function to ping NServers. It creates socket and starts to talk.
+	 * Used only by instances of class created in NServer.
+	 * @return
+	 */
 	
 	public boolean PingNServer() {
 		int timeout = 1000;

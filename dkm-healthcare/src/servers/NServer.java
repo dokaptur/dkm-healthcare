@@ -51,7 +51,7 @@ public class NServer {
 	
 	/**
 	 * Class to ping DB Servers; extends TimerTask to run it periodically with Timer
-	 * Creates an instance of P3protocol and run function PingServers.
+	 * Creates an instance of P3protocol and runs function PingServers.
 	 * Then, if in returned ArrayList false value occurs, runs function to notify administrator
 	 * @author dudu
 	 *
@@ -126,13 +126,15 @@ public class NServer {
 	}
 	
 	/**
-	 * Static class to send mail. Mail is sent from "adminMail" to "email".
-	 * It is static, because NGServer uses it as well.
+	 * Static class to send mail. Uses methods from JavaMail library.
+	 *  Mail is sent from "adminMail" to "email".
+	 * It is static, because other static functions call it.
+	 * Public, because NGServer uses it
 	 * @param email
 	 * @param mailtext
 	 */
 	
-	private static void SendMail(String email, String mailtext) {
+	public static void SendMail(String email, String mailtext) {
 		String host = "smtp.gmail.com";
 	    String username = "dkm.dkmhealthcare";
 	    String password = " ";// here comes the password. I don't want to public in on GitHub ;)
@@ -165,6 +167,7 @@ public class NServer {
 	
 	/**
 	 * Class to notify patients. It takes info from ResultSet, prepares message (which depends on Request) and then runs SendMail
+	 * public static, because NGServer uses it as well.
 	 * @param rs
 	 * @param req
 	 */
@@ -197,6 +200,7 @@ public class NServer {
 	
 	/**
 	 * Class to notify administrator about problems with server 
+	 * Public static, because NGServer uses it as well.
 	 * @param addr (address of broken server) 
 	 */
 	

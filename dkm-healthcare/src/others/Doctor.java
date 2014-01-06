@@ -5,13 +5,32 @@ import java.sql.SQLException;
 import java.util.Scanner;
 import servers.Client;
 
+/**
+ * A class to work in doctor mode. It is created in Client class if client chose to work as doctor. 
+ * @author dudu
+ *
+ */
+
 public class Doctor {
 	
+	/**
+	 * pesel of client
+	 */
 	String pesel;
 	
+	/**
+	 * constructor
+	 * @param pesel
+	 */
 	public Doctor(String pesel) {
 		this.pesel = pesel;
 	}
+	
+	/**
+	 * method to work with one patient. In loop, client can choose what to do.
+	 * Then sql queries are build and action is hold.
+	 * @param sc
+	 */
 	
 	private void onePatient(Scanner sc) {
 		System.out.println("Wprowadź numer pesel pacjenta:");
@@ -77,6 +96,13 @@ public class Doctor {
 				realizeReferral(sc, patient);
 				break;
 			case 7:
+				if (my) {
+					workWithHistory(sc, patient);
+				} else {
+					query = "select email from \"dkm-healthcare\".osoby where pesel = ("
+							+ "select lekarz_rodzinny from \"dkm-healthcare\".osoby_info where pesel = " + patient + ");";
+					getResult(query, 1, true);
+				}
 				break;
 			case 8:
 				System.out.println("Dziękujemy za pracę z pacjentam " + patient +"!");
@@ -87,6 +113,13 @@ public class Doctor {
 			}
 		}
 	}
+	
+	/**
+	 * short but very important method.
+	 * Prints results of select queries onto StdIn
+	 * @param rs 
+	 * @param columns (how many columns our ResultSet has)
+	 */
 	
 	private void printResult(ResultSet rs, int columns) {
 		try {
@@ -101,12 +134,37 @@ public class Doctor {
 		}
 	}
 	
+	/**
+	 * Method to get ResultSet using P1.
+	 * @param query
+	 * @param columns
+	 * @param print
+	 */
+	
 	private void getResult(String query, int columns, boolean print) {
 		ResultSet rs = Client.getRSbyP1(query);
 		if (print) {
 			printResult(rs, columns);
 		}
 	}
+	
+	/**
+	 * Method to download, modify and upload history
+	 * @param sc
+	 * @param patient
+	 */
+	
+	private void workWithHistory(Scanner sc, String patient) {
+		
+	}
+	
+	/**
+	 * Method to realize referral. 
+	 * First, it checks if referral exist and is not realized yet.
+	 * Then send query to update it.
+	 * @param sc
+	 * @param patient
+	 */
 	
 	private void realizeReferral(Scanner sc, String patient) {
 		System.out.println("Wprowadź numer skierowania:");
@@ -129,6 +187,12 @@ public class Doctor {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Method to add referral for a patient we work with.
+	 * @param sc
+	 * @param patient
+	 */
 	
 	private void addReferral(Scanner sc, String patient) {
 		System.out.println("Jeśli chcesz wyświetlić dostępne zabiegi, wprowadź 1");
@@ -163,6 +227,10 @@ public class Doctor {
 		}
 	}
 	
+	/**
+	 * This method shows if doctor has rights to work as a doctor.
+	 */
+	
 	private void rights() {
 		String query = "select prawa from \"dkm-healthcare\".lekarze where id_lekarz = " + pesel + ";";
 		ResultSet rs = Client.getRSbyP1(query);
@@ -179,6 +247,10 @@ public class Doctor {
 		}
 	}
 	
+	/**
+	 * Method to show, add or remove work place
+	 * @param sc
+	 */
 	
 	private void workplaces(Scanner sc) {
 		System.out.println("Aby wyświetlić swoje miejsca pracy, wprowadź 1");
@@ -212,6 +284,9 @@ public class Doctor {
 		}
 	}
 	
+	/**
+	 * Main "loop function" to work in doctor mode
+	 */
 	public void perform() {
 		Scanner sc = new Scanner(System.in);
 		while (true) {

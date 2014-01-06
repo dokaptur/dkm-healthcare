@@ -4,14 +4,31 @@ import java.util.Scanner;
 
 import servers.Client;
 
+/**
+ * A class to work in pharmacist mode. It is created in Client class if client chose to work as pharmasict. 
+ * @author dudu
+ *
+ */
+
 public class Pharmacist {
+	
+	/**
+	 * pesel of client
+	 */
 	
 	String pesel;
 	
+	/**
+	 * constructor
+	 * @param pesel
+	 */
 	public Pharmacist (String pesel) {
 		this.pesel = pesel;
 	}
-	
+	/**
+	 * class to "realize" prescription. Sends query to DBServer asking to modify some data (using Client.getRSbyP1 method)
+	 * @param sc
+	 */
 	private void realizePrecsription(Scanner sc) {
 		System.out.println("Wprowadź numer recepty:\n");
 		String nr = sc.next();
@@ -21,6 +38,9 @@ public class Pharmacist {
 		
 	}
 	
+	/**
+	 * main "loop function" to work in pharmacist mode
+	 */
 	public void perform() {
 		Scanner sc = new Scanner(System.in);
 		while (true) {
