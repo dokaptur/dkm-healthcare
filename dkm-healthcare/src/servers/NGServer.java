@@ -57,6 +57,15 @@ public class NGServer {
 		
 	}
 	
+	public static class ImAlive extends TimerTask {
+
+		@Override
+		public void run() {
+			NServer.SendMail("dkm.dkmhealthcare@gmail.com", "Here is NGServer! I'm ok!");
+		}
+		
+	}
+	
 	public static void main() {
 		Calendar beforeMid = (Calendar) NServer.midnight.clone();
 		Calendar beforepm4 = (Calendar) NServer.pm4.clone();
@@ -69,7 +78,7 @@ public class NGServer {
 		
 		(new Timer()).scheduleAtFixedRate(new PrecriptionChecker(), beforeMid.getTime(), 3600 * 1000 * 12);
 		
-		
+		(new Timer()).scheduleAtFixedRate(new ImAlive(), NServer.midnight.getTime(), 3600 * 1000 * 12);
 	}
 	
 	

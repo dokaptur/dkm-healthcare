@@ -1,4 +1,4 @@
-Protokół P3 i działanie głównego serwera powiadomień - 
+Protokół P3 i działanie głównego serwera powiadomień (NServer) - 
 ANALIZA I DOKUMENTACJA TECHNICZNA 
 
 Chcielibyśmy, żeby nasza aplikacja miała funkcjonalność wysyłania do pacjentów powiadomień dotyczących wygasania terminów ważności niezrealizowanych recept oraz informowania, czy w danym dniu nastąpiła zmiana w historii choroby (bo to może świadczyć o np. pojawieniu się wyników badań). 
@@ -17,7 +17,7 @@ Protokół P3 oparty jest na protokole TCP w warstwie sieci.
 Rozmowa wedle protokołu P3 odbywa się poprzez odbieranie i wysyłanie strumienia danych (głównie teksowego) do Socketa. W przypadku pytań o konkretne informacje z bazy danych, w pewnym momencie otwierane są strumienie do przesyłania obiektów (na tym samym Sockecie; wymaga to więc wcześniejszego zamknięcia strumienia tekstowego) i serwer bazy danych zwraca obiekt klasy ResultSet. 
 
 4. STANOWOŚĆ
-Protokół P3 jest protokołem stanowym. Jest to wygodne, gdyż rozmowy są stosunkowo krótkie i nie kosztuje nas wiele pamiętanie w jakim momencie rozmowy jesteśmy. Dlatego też powstała klasa ServerSocketThread, która każdą rozmowę otwiera w osobnym wątku. Jest to też o tyle wygodne, gdyż nie chcemy podawać informacji z bazy danych byle komu. Ale o tym w następnym podpunkcie.
+Protokół P3 jest protokołem stanowym. Jest to wygodne, gdyż rozmowy są stosunkowo krótkie i nie kosztuje nas wiele pamiętanie w jakim momencie rozmowy jesteśmy. Bardziej obciążające byłby wysyłanie za każdym razem wiekszej ilości informacji. Dlatego też powstała klasa ServerSocketThread, która każdą rozmowę otwiera w osobnym wątku. Jest to też o tyle wygodne, gdyż nie chcemy podawać informacji z bazy danych byle komu. Ale o tym w następnym podpunkcie.
 
 5. POUFNOŚĆ
 Protokół P3 po stronie bazy danych sprawdza, czy pytającym jest serwer powiadomień. Serwerów powiadomień nie jest wiele, stąd też w protokole są zahardkodowane adresy IP serwerów powiadomień. Po rozpoczęciu rozmowy (w trakcie "handshakingu") serwery baz danych sprawdzają czy adres IP pytającego zgadza się z którymś ze znanych mu adresów serwerów powiadomień. Jeśli tak nie jest, rozmowa zostaje przerwana.

@@ -188,7 +188,7 @@ public class P3protocol {
 	
 	/**
 	 * checks if DBservers are available
-	 * @return "availability"
+	 * @return Array of "availability"
 	 */
 	
 	
@@ -222,7 +222,8 @@ public class P3protocol {
 	}
 	
 	/**
-	 * asks DataBasis servers about  prescriptions we should send notifications (together with email addresses and names of patients) or last modified history 
+	 * asks DataBasis servers about prescriptions or modifications in history we should send notifications about
+	 *  (together with email addresses and names of patients) or last modified history 
 	 * @param enum to determine what do we want to ask about
 	 * @return ResultSet from DBServers 
 	 */
