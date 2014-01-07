@@ -90,7 +90,7 @@ public class Client {
 			int i = sc.nextInt();
 			switch(i) {
 			case 1:
-				// patient class!!
+				new Patient(pesel).perform();
 				break;
 			case 2:
 				Doctor doctor = new Doctor(pesel);
