@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+
 import others.*;
 
 /**
@@ -41,6 +42,7 @@ public class Client {
 	 */
 	
 	public static void main(String[] args) {
+		
 		
 		boolean isDoctor = false;
 		boolean isPharm = false;

@@ -6,13 +6,14 @@ import java.sql.SQLException;
 import java.util.*;
 
 import protocols.P3protocol;
-import protocols.P3protocol.Request;
 import protocols.P3protocol.Site;
 import servers.ServerSocketThread.ServerType;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
+import others.Config;
 
 
 /**
@@ -23,31 +24,18 @@ import javax.mail.internet.MimeMessage;
 
 public class NServer {
 	
-	/**
-	 * Fields to get time for Timer. They are static, because NGServer uses those as well. 
-	 */
+	Config config;
+	String historyQuery = "select * from historia_powiadomienia";
+	String left5Query = "select * from recepty_powiadomienia_5";
+	String expireQuery = "select * from recepty_powiadomienia_dzis";
 	
-	public static Calendar midnight;
-	public static Calendar pm4;
-	
-	
-	static {
-		midnight.set(Calendar.HOUR, 1);
-		midnight.set(Calendar.AM_PM, Calendar.AM);
-		midnight.set(Calendar.MINUTE, 0);
-		midnight.set(Calendar.SECOND, 0);
-		
-		pm4.set(Calendar.HOUR, 4);
-		pm4.set(Calendar.AM_PM, Calendar.PM);
-		pm4.set(Calendar.MINUTE, 0);
-		pm4.set(Calendar.SECOND, 0);
+	public NServer() {
+		config = new Config();
 	}
 	
-	/**
-	 * administrator's email address
-	 */
-	
-	public static String adminMail = "dokaptur@gmail.com";
+	public static enum NotifyType {
+		HISTORY, LEFT5, EXPIRE
+	}
 	
 	/**
 	 * Class to ping DB Servers; extends TimerTask to run it periodically with Timer
@@ -57,15 +45,15 @@ public class NServer {
 	 *
 	 */
 	
-	public static class Pinger extends TimerTask {
+	public class Pinger extends TimerTask {
 		
 		@Override
 		public void run() {
-			P3protocol protocol = new P3protocol(Site.Notify);
+			P3protocol protocol = new P3protocol(Site.Notify, config);
 			ArrayList<Boolean> list = protocol.pingServers();
 			for (int i=0; i<protocol.dbAdresses.size(); i++) {
 				if (list.get(i) == Boolean.FALSE) {
-					NServer.NotifyAdmin(protocol.dbAdresses.get(i)); 
+					NotifyAdmin(protocol.dbAdresses.get(i)); 
 				}
 			}
 		}
@@ -78,66 +66,39 @@ public class NServer {
 	 *
 	 */
 	
-	public static class History_Notifier extends TimerTask {
+	public class Notifier extends TimerTask {
+		
+		String query;
+		NotifyType type;
+		
+		public Notifier(String query, NotifyType type) {
+			this.query = query;
+			this.type = type;
+		}
 
 		@Override
 		public void run() {
-			P3protocol protocol = new P3protocol(Site.Notify);
-			ResultSet result = protocol.getInfo(Request.HISTORY_CHANGE);
-			NotifyPatients (result, Request.HISTORY_CHANGE);
+			P3protocol protocol = new P3protocol(Site.Notify, config);
+			ResultSet result = protocol.getInfo(query);
+			NotifyPatients (result, type);
 		}
 		
 	}
 	
-	/**
-	 * Class to send notifications about prescriptions expiring within 5 days.
-	 * Similar to Pinger
-	 * @author dudu
-	 *
-	 */
 	
-	public static class Left5_Notifier extends TimerTask {
-
-		@Override
-		public void run() {
-			P3protocol protocol = new P3protocol(Site.Notify);
-			ResultSet result = protocol.getInfo(Request.PRECSR_LEFT5);
-			NotifyPatients (result, Request.PRECSR_LEFT5);
-		}
-		
-	}
 	
 	/**
-	 * Class to send notifications about  prescriptions expiring today.
-	 * Similar to Pinger
-	 * @author dudu
-	 *
-	 */
-	
-	public static class Expire_Notifier extends TimerTask {
-
-		@Override
-		public void run() {
-			P3protocol protocol = new P3protocol(Site.Notify);
-			ResultSet result = protocol.getInfo(Request.PRESC_EXPIRE);
-			NotifyPatients (result, Request.PRESC_EXPIRE);
-		}
-		
-	}
-	
-	/**
-	 * Static class to send mail. Uses methods from JavaMail library.
+	 * class to send mail. Uses methods from JavaMail library.
 	 *  Mail is sent from "adminMail" to "email".
-	 * It is static, because other static functions call it.
 	 * Public, because NGServer uses it
 	 * @param email
 	 * @param mailtext
 	 */
 	
-	public static void SendMail(String email, String mailtext) {
+	public void SendMail(String email, String mailtext) {
 		String host = "smtp.gmail.com";
 	    String username = "dkm.dkmhealthcare";
-	    String password = " ";// here comes the password. I don't want to public in on GitHub ;)
+	    String password = config.password;
 	    Properties props = new Properties();
 	    // set any needed mail.smtps.* properties here
 	    Session session = Session.getInstance(props);
@@ -172,7 +133,7 @@ public class NServer {
 	 * @param req
 	 */
 	
-	public static void NotifyPatients (ResultSet rs, Request req) {
+	public void NotifyPatients (ResultSet rs, NotifyType req) {
 		if (rs == null) return;
 		try {
 			while (rs.next()) {
@@ -180,13 +141,13 @@ public class NServer {
 				String imie = rs.getString("imie");
 				String nazwisko = rs.getString("nazwisko");
 				String recepta = "";
-				if (! req.equals(Request.HISTORY_CHANGE)) {
+				if (! req.equals(NotifyType.HISTORY)) {
 					recepta = rs.getString("recepta");
 				}
 				String mailtext = "Dear " + imie + " " + nazwisko + "! \n";
-				if (req.equals(Request.HISTORY_CHANGE)) {
+				if (req.equals(NotifyType.HISTORY)) {
 					mailtext += "Your history has been changed today. Check it!";
-				} else if (req.equals(Request.PRECSR_LEFT5)) {
+				} else if (req.equals(NotifyType.LEFT5)) {
 					mailtext += "Your prescription (" + recepta + ") is going to expire within 5 days. \n Buy it as soon as possible!";
 				} else {
 					mailtext += "Your prescription (" + recepta + ") expires today.";
@@ -204,7 +165,7 @@ public class NServer {
 	 * @param addr (address of broken server) 
 	 */
 	
-	public static void NotifyAdmin(InetSocketAddress addr) {
+	public void NotifyAdmin(InetSocketAddress addr) {
 		String email = "dkm.dkmhealthcare@gmail.com";
 		String mailtext = "An error occured on Server " + addr.getHostString() + " ! \n Check it as soon as possible!";
 		SendMail(email, mailtext);
@@ -214,20 +175,23 @@ public class NServer {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		
+		NServer nserver = new NServer();
 		
-		(new Timer()).scheduleAtFixedRate(new Pinger(), midnight.getTime(), 3600 * 1000);
 		
-		(new Timer()).scheduleAtFixedRate(new History_Notifier(), pm4.getTime(), 3600 * 1000 * 12);
 		
-		(new Timer()).scheduleAtFixedRate(new Left5_Notifier(), midnight.getTime(), 3600 * 1000 * 12);
+		(new Timer()).scheduleAtFixedRate(nserver.new Pinger(), nserver.config.midnight.getTime(), 3600 * 1000);
 		
-		(new Timer()).scheduleAtFixedRate(new Expire_Notifier(), midnight.getTime(), 3600 * 1000 * 12);
+		(new Timer()).scheduleAtFixedRate(nserver.new Notifier(nserver.historyQuery, NotifyType.HISTORY), nserver.config.pm4.getTime(), 3600 * 1000 * 12);
+		
+		(new Timer()).scheduleAtFixedRate(nserver.new Notifier(nserver.left5Query, NotifyType.LEFT5), nserver.config.midnight.getTime(), 3600 * 1000 * 12);
+		
+		(new Timer()).scheduleAtFixedRate(nserver.new Notifier(nserver.expireQuery, NotifyType.EXPIRE), nserver.config.midnight.getTime(), 3600 * 1000 * 12);
 		
 		try {
 			ServerSocket server = new ServerSocket(2006);
 			while (true) {
 				Socket socket = server.accept();
-				ServerSocketThread thread = new ServerSocketThread(socket, ServerType.N);
+				ServerSocketThread thread = new ServerSocketThread(socket, ServerType.N, nserver.config);
 				thread.run();
 			}
 		} catch (Exception e) {
