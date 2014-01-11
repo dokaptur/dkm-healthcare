@@ -1,0 +1,5 @@
+NServer localhost 2006
+NGServer localhost 2007
+BD1 localhost 2004
+BD2 localhost 2005
+password bazysieci

@@ -121,7 +121,7 @@ public class Doctor {
 	 * @param columns (how many columns our ResultSet has)
 	 */
 	
-	private void printResult(ResultSet rs, int columns) {
+	public void printResult(ResultSet rs, int columns) {
 		try {
 			while (rs.next()) {
 				for (int i=1; i<=columns; i++) {

@@ -5,6 +5,7 @@ import java.net.*;
 import java.sql.*;
 import java.util.*;
 
+import others.Config;
 import protocols.P3protocol;
 import protocols.P3protocol.Site;
 
@@ -46,7 +47,10 @@ public class ServerSocketThread implements Runnable {
 	 * @param socket
 	 */
 	
-	public ServerSocketThread(Socket socket, ServerType type) {
+	Config config;
+	
+	public ServerSocketThread(Socket socket, ServerType type, Config config) {
+		this.config = config;
 		this.type = type;
 		this.socket = socket;
 	}
@@ -56,7 +60,8 @@ public class ServerSocketThread implements Runnable {
 	 * @param socket
 	 * @param con
 	 */
-	public ServerSocketThread(Socket socket, ServerType type, Connection con) {
+	public ServerSocketThread(Socket socket, ServerType type, Config config, Connection con) {
+		this.config = config;
 		this.type = type;
 		this.socket = socket;
 		this.con = con;
@@ -78,8 +83,8 @@ public class ServerSocketThread implements Runnable {
 			 */
 			
 			if (s.equals("P3")) {
-				P3protocol protocol = new P3protocol(Site.DB);
-				protocol.talk(socket, null, con);
+				P3protocol protocol = new P3protocol(Site.DB, config);
+				protocol.talk(socket, null, null, con);
 			} 
 			else if (s.equals("P1")) {
 				

@@ -5,6 +5,13 @@ import java.net.*;
 import java.sql.*;
 import java.util.*;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
+import com.sun.rowset.CachedRowSetImpl;
+
+import others.Config;
+
 
 /**
  * An application-level protocol for communication between notifier server and data basis servers.
@@ -14,8 +21,19 @@ import java.util.*;
 public class P3protocol {
 	
 	/**
+	 * Object to create SSLSockets
+	 */
+	SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+	
+	/**
+	 * object with configuration
+	 */
+	Config config;
+	
+	/**
 	 * addresses of DataBasis servers
 	 */
+	
 	
 	public ArrayList<InetSocketAddress> dbAdresses = new ArrayList<>();
 	
@@ -36,11 +54,12 @@ public class P3protocol {
 		Notify, DB;
 	}
 	
+	
 	/**
 	 * enum to determine what do we want from DBServer
 	 */
 	public static enum Request {
-		PING, HISTORY_CHANGE, PRECSR_LEFT5, PRESC_EXPIRE;
+		PING, INFO;
 	}
 	
 	
@@ -48,20 +67,21 @@ public class P3protocol {
 	
 	/**
 	 * constructor;
-	 * we fill in it addresses of servers - that can be "hardcoded"
+	 * we fill in it addresses of servers from config object
 	 * @param site - we tell protocol as which server we will use it
 	 */
 	
 	
-	public  P3protocol(Site site) {
+	public  P3protocol(Site site, Config config) {
 		this.site = site;
+		this.config = config;
 		
-		//tmp!!
-		dbAdresses.add(new InetSocketAddress("localohost", 2004));
-		dbAdresses.add(new InetSocketAddress("localohost", 2005));
+		dbAdresses.add(config.BD1addr);
+		dbAdresses.add(config.BD2addr);
 		
-		nAdresses.add(new InetSocketAddress("localohost", 2006));
-		nAdresses.add(new InetSocketAddress("localohost", 2007));
+		nAdresses.add(config.Naddr);
+		nAdresses.add(config.NGaddr);
+		
 	}
 	
 	/**
@@ -72,7 +92,7 @@ public class P3protocol {
 	 * @throws Exception
 	 */
 	
-	public Object talk(Socket socket, Request request, Connection con) throws Exception {
+	public Object talk(Socket socket, Request request, String query, Connection con) throws Exception {
 		PrintWriter wr = new PrintWriter (socket.getOutputStream());
 		Scanner sc = new Scanner (socket.getInputStream());
 		Object obj = null;
@@ -98,21 +118,28 @@ public class P3protocol {
 				return null;
 			}
 			else if (ans.equals("Give me info!")) {
-				for (int i=0; i<10; i++) {
-					wr.write("Ok, give me querry");
+				for (int i=0; i<10; i++) { // tries to send result max 10 times
+					wr.write("Ok, give me query");
+					
+					// get CachedRowSetImpl object from DB
 					String sql = sc.nextLine();
 					ResultSet result = null;
 					Statement stat = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+					stat.execute("SET search_path TO 'dkm-healthcare'");
+					CachedRowSetImpl crs = new CachedRowSetImpl();
 					try {
 						result = stat.executeQuery(sql);
 					} catch (Exception e) {
 						result = null;
 					}
-					wr.close();
-					ObjectOutputStream obstr = new ObjectOutputStream(socket.getOutputStream());
-					obstr.writeObject(result);
-					obstr.close();
-					wr = new PrintWriter(socket.getOutputStream());
+					crs.populate(result);
+					
+					wr.close(); 
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject(crs);
+					
+					crs.close();
+					
 					String ans2 = sc.nextLine();
 					if (ans2.equals("Ok, got it")) {
 						wr.write("Ok, bye!");
@@ -155,22 +182,16 @@ public class P3protocol {
 			} else {
 				wr.write("Give me info!");
 				String s = sc.nextLine();
-				while (s.equals("Ok, give me querry")) {
-					String sql = "";
-					if (request == Request.HISTORY_CHANGE) {
-						sql = "select * from \"dkm-healthcare\".historia_powiadomienia";
-					} else if (request == Request.PRECSR_LEFT5) {
-						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_5";
-					} else {
-						sql = "select * from \"dkm-healthcare\".recepty_powiadomienia_dzis";
-					}
-					wr.write(sql);
+				while (s.equals("Ok, give me query")) {
+					wr.write(query);
+					
+					//close scanner, open ObjectInputStream
 					sc.close();
 					ObjectInputStream obstr = new ObjectInputStream(socket.getInputStream());
 					obj = obstr.readObject();
 					obstr.close();
 					sc = new Scanner (socket.getInputStream());
-					if (obj != null && obj instanceof ResultSet) {
+					if (obj != null && obj instanceof CachedRowSetImpl) {
 						wr.write("Ok, got it");
 					} else {
 						wr.write("Something went wrong!");
@@ -195,12 +216,18 @@ public class P3protocol {
 	public ArrayList<Boolean> pingServers() {
 		ArrayList<Boolean> list = new ArrayList<>();
 		for (InetSocketAddress addr : dbAdresses) {
-			Socket socket = new Socket();
+			SSLSocket socket = null;
+			try {
+				socket = (SSLSocket) factory.createSocket();
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
 			boolean flag = false;
 			for (int i=0; i<100; i++) {
 				try {
 					socket.connect(addr, timeout);
-					Boolean b = (Boolean) talk(socket, Request.PING, null);
+					Boolean b = (Boolean) talk(socket, Request.PING, null, null);
 					if (b.equals(Boolean.TRUE)) {
 						list.add(b);
 						flag = true;
@@ -228,13 +255,20 @@ public class P3protocol {
 	 * @return ResultSet from DBServers 
 	 */
 	
-	public ResultSet getInfo(Request request) {
+	public ResultSet getInfo(String query) {
+		
 		for (InetSocketAddress addr : dbAdresses) {
-			Socket socket = new Socket();
+			SSLSocket socket = null;
+			try {
+				socket = (SSLSocket) factory.createSocket();
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
 			for (int i=0; i<100; i++) {
 				try {
 					socket.connect(addr, timeout);
-					ResultSet b = (ResultSet) talk(socket, request, null);
+					ResultSet b = (ResultSet) talk(socket, Request.INFO, query, null);
 					if (b != null) {
 						return b;
 					}
