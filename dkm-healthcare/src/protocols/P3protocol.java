@@ -93,8 +93,12 @@ public class P3protocol {
 	 */
 	
 	public Object talk(Socket socket, Request request, String query, Connection con) throws Exception {
-		PrintWriter wr = new PrintWriter (socket.getOutputStream());
-		Scanner sc = new Scanner (socket.getInputStream());
+		
+		InputStream is = socket.getInputStream();
+		OutputStream os = socket.getOutputStream();
+		
+		PrintWriter wr = new PrintWriter (os);
+		BufferedReader sc = new BufferedReader(new InputStreamReader(is));
 		Object obj = null;
 		
 		if (site == Site.DB) {
@@ -105,26 +109,28 @@ public class P3protocol {
 				}
 			}
 			if (!flag) {
-				wr.write("I don't know you and Mom always told me I mustn't talk to the stranger! Bye!");
+				wr.println("I don't know you and Mom always told me I mustn't talk to the stranger! Bye!"); wr.flush();
 				sc.close(); wr.close();
 				return null;
 			}
-			else wr.write("P3 Protocol. What do you want?");
+			else {
+				wr.println("P3 Protocol. What do you want?"); wr.flush();
+			}
 			
-			String ans = sc.nextLine();
+			String ans = sc.readLine(); System.out.println(ans);
 			if (ans.equals("Ping!")) {
-				wr.write("Pong!");
+				wr.println("Pong!"); wr.flush();
 				sc.close(); wr.close();
 				return null;
 			}
 			else if (ans.equals("Give me info!")) {
 				for (int i=0; i<10; i++) { // tries to send result max 10 times
-					wr.write("Ok, give me query");
+					wr.println("Ok, give me query"); wr.flush();
 					
 					// get CachedRowSetImpl object from DB
-					String sql = sc.nextLine();
+					String sql = sc.readLine(); System.out.println(sql);
 					ResultSet result = null;
-					Statement stat = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+					Statement stat = con.createStatement();
 					stat.execute("SET search_path TO 'dkm-healthcare'");
 					CachedRowSetImpl crs = new CachedRowSetImpl();
 					try {
@@ -134,15 +140,20 @@ public class P3protocol {
 					}
 					crs.populate(result);
 					
-					wr.close(); 
-					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-					oos.writeObject(crs);
+					wr.println("Port number for new connection?"); wr.flush();
+					String s = sc.readLine(); System.out.println(s);
+					int port = Integer.parseInt(s);
+					Socket objsocket = new Socket();
+					objsocket.connect(new InetSocketAddress(socket.getInetAddress(), port), 100);
+					ObjectOutputStream oos = new ObjectOutputStream(objsocket.getOutputStream());
+					oos.writeObject(crs); oos.flush();
+					oos.close(); objsocket.close();
 					
 					crs.close();
 					
-					String ans2 = sc.nextLine();
+					String ans2 = sc.readLine(); System.out.println(ans2);
 					if (ans2.equals("Ok, got it")) {
-						wr.write("Ok, bye!");
+						wr.println("Ok, bye!"); wr.flush();
 						sc.close(); wr.close();
 						return null;
 					} 
@@ -150,12 +161,12 @@ public class P3protocol {
 						continue;
 					}
 					else {
-						wr.write("Protocol error! Bye!");
+						wr.println("Protocol error! Bye!"); wr.flush();
 						sc.close(); wr.close();
 						return null;
 					}
 				}
-				wr.write("I can't. Tell it to admin. Bye!");
+				wr.println("I can't. Tell it to admin. Bye!"); wr.flush();
 				sc.close(); wr.close();
 				return null;
 			}
@@ -166,37 +177,41 @@ public class P3protocol {
 			
 		} else { // site = Notify
 			
-			wr.write("P3");
-			if (!sc.nextLine().equals("P3 Protocol. What do you want?")) {
+			wr.println("P3"); wr.flush();
+			String s = sc.readLine(); System.out.println(s);
+			if (!s.equals("P3 Protocol. What do you want?")) {
 				sc.close(); wr.close();
 				return null;
 			}
 			if (request == Request.PING) {
-				wr.write("Ping!");
-				if (!sc.nextLine().equals("Pong!")) {
+				wr.println("Ping!"); wr.flush();
+				s = sc.readLine(); System.out.println(s);
+				if (!s.equals("Pong!")) {
 					sc.close(); wr.close();
 					return null;
 				}
 				sc.close(); wr.close();
 				return new Boolean(true);
 			} else {
-				wr.write("Give me info!");
-				String s = sc.nextLine();
+				wr.println("Give me info!"); wr.flush();
+				s = sc.readLine(); System.out.println(s);
 				while (s.equals("Ok, give me query")) {
-					wr.write(query);
+					wr.println(query); wr.flush();
 					
-					//close scanner, open ObjectInputStream
-					sc.close();
-					ObjectInputStream obstr = new ObjectInputStream(socket.getInputStream());
+					ServerSocket objss = new ServerSocket(0);
+					s = sc.readLine(); System.out.println(); // Port number for new connection?
+					wr.println(objss.getLocalPort()); wr.flush();
+					Socket objsocket = objss.accept();
+					ObjectInputStream obstr = new ObjectInputStream(objsocket.getInputStream());
 					obj = obstr.readObject();
-					obstr.close();
-					sc = new Scanner (socket.getInputStream());
+					obstr.close(); objsocket.close(); objss.close();
+					
 					if (obj != null && obj instanceof CachedRowSetImpl) {
-						wr.write("Ok, got it");
+						wr.println("Ok, got it"); wr.flush();
 					} else {
-						wr.write("Something went wrong!");
+						wr.println("Something went wrong!"); wr.flush();
 					}
-					s = sc.nextLine();
+					s = sc.readLine(); System.out.println(s);
 				}
 				wr.close(); sc.close();
 				if (s.equals("Ok, bye!")) {
@@ -216,13 +231,13 @@ public class P3protocol {
 	public ArrayList<Boolean> pingServers() {
 		ArrayList<Boolean> list = new ArrayList<>();
 		for (InetSocketAddress addr : dbAdresses) {
-			SSLSocket socket = null;
+			Socket socket = new Socket();
+			/*SSLSocket socket = null;
 			try {
 				socket = (SSLSocket) factory.createSocket();
 			} catch (IOException e2) {
-				// TODO Auto-generated catch block
 				e2.printStackTrace();
-			}
+			} */
 			boolean flag = false;
 			for (int i=0; i<100; i++) {
 				try {
@@ -258,13 +273,14 @@ public class P3protocol {
 	public ResultSet getInfo(String query) {
 		
 		for (InetSocketAddress addr : dbAdresses) {
-			SSLSocket socket = null;
+			Socket socket = new Socket();
+			/*SSLSocket socket = null;
 			try {
 				socket = (SSLSocket) factory.createSocket();
 			} catch (IOException e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
-			}
+			} */
 			for (int i=0; i<100; i++) {
 				try {
 					socket.connect(addr, timeout);
@@ -274,6 +290,8 @@ public class P3protocol {
 					}
 					
 				} catch (Exception e) {
+					System.out.println("error in connection"); //DEBUG
+					e.printStackTrace(); //DEBUG
 					try {
 						Thread.sleep(3000);
 					} catch (Exception e1) {

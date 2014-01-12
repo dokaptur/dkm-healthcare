@@ -32,9 +32,9 @@ public class Pharmacist {
 	private void realizePrecsription(Scanner sc) {
 		System.out.println("Wprowadź numer recepty:\n");
 		String nr = sc.next();
-		String query = "update \"dkm-healthcare\".recepty set zrealizowana = true, zrealizowana_przez = " + pesel + 
-				" where numer = " + nr + ";";
-		Client.getRSbyP1(query);
+		String query = "update recepty set zrealizowana = true, zrealizowana_przez = '" + pesel + 
+				"' where numer = " + nr + ";";
+		Client.updateBDbyP1(query);
 		
 	}
 	
