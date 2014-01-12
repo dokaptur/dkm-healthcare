@@ -13,8 +13,8 @@ public class Config {
 	
 	public String password;
 	
-	public Calendar midnight;
-	public Calendar pm4;
+	public Calendar midnight = Calendar.getInstance();
+	public Calendar pm4 = Calendar.getInstance();
 	
 
 	/**
@@ -37,8 +37,15 @@ public class Config {
 	}
 	
 	public Config() {
-		fillAdresses();
+		//fillAdresses();
 		setCallendar();
+		
+		//tmp -before reorganizing!!!
+		password = "bazysieci";
+		BD1addr = new InetSocketAddress("localhost",2004);
+		BD2addr = new InetSocketAddress("localhost", 2005);
+		Naddr = new InetSocketAddress("localhost", 2006);
+		NGaddr = new InetSocketAddress("localhost", 2007);
 	}
 	
 	void fillAdresses() {

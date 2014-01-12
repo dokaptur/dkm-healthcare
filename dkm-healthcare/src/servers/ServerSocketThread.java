@@ -3,11 +3,12 @@ package servers;
 import java.io.*;
 import java.net.*;
 import java.sql.*;
-import java.util.*;
 
 import others.Config;
 import protocols.P3protocol;
+import protocols.P4protocol;
 import protocols.P3protocol.Site;
+import protocols.P4protocol.P4Site;
 
 /**
  * Class to use when someone connects to Server. Implements Runnable to start it in new thread.
@@ -75,8 +76,9 @@ public class ServerSocketThread implements Runnable {
 	public void run() {
 		try {
 			PrintWriter wr = new PrintWriter(socket.getOutputStream());
-			Scanner sc = new Scanner(socket.getInputStream());
-			String s = sc.nextLine();
+			BufferedReader sc = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			String s = sc.readLine();
+			System.out.println(s);
 			
 			/**
 			 * if someone talk to us with P3 protocol we must be DBServer
@@ -93,7 +95,8 @@ public class ServerSocketThread implements Runnable {
 				
 			} 
 			else if (s.equals("P4")) {
-				
+				P4protocol p4 = new P4protocol(P4Site.N, config);
+				p4.talk(socket);
 			} 
 			else {
 				wr.write("Protocol error! Bye!");

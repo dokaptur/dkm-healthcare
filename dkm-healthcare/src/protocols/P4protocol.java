@@ -1,8 +1,11 @@
 package protocols;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
-import java.util.Scanner;
+
+import others.Config;
 
 /**
  * An application-level protocol for communication between NSever (notifications server) and NGServer (NServer's Guardian).
@@ -30,14 +33,21 @@ public class P4protocol {
 	/**
 	 * address of NServer
 	 */
-	public static InetSocketAddress nserveraddr = new InetSocketAddress("localhost", 2006);
+	public static InetSocketAddress nserveraddr; 
+	
+	/**
+	 * instance of config class
+	 */
+	Config config;
 	
 	/**
 	 * constructor
 	 * @param site (we want to know of we are in NServer or NGServer
 	 */
-	public P4protocol (P4Site site) {
+	public P4protocol (P4Site site, Config config) {
 		this.site = site;
+		this.config = config;
+		nserveraddr = config.Naddr;
 	}
 	
 	/**
@@ -50,21 +60,21 @@ public class P4protocol {
 	
 	public boolean talk(Socket socket) throws Exception {
 		PrintWriter wr = new PrintWriter (socket.getOutputStream());
-		Scanner sc = new Scanner (socket.getInputStream());
+		BufferedReader sc = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		if (site == P4Site.N) {
-			wr.write("P4 Protocol. What do you want?");
-			if (sc.nextLine().equals("Ping!")) {
-				wr.write("Pong!");
+			wr.println("P4 Protocol. What do you want?"); wr.flush();
+			if (sc.readLine().equals("Ping!")) {
+				wr.println("Pong!"); wr.flush();
 				wr.close(); sc.close();
 				return true;
 			} 
 			wr.close(); sc.close();
 			return false;
 		} else { // site == P4Site.NG
-			wr.write("P4");
-			if (sc.nextLine().equals("P4 Protocol. What do you want?")) {
-				wr.write("Ping!");
-				if (sc.nextLine().equals("Pong!")) {
+			wr.println("P4"); wr.flush();
+			if (sc.readLine().equals("P4 Protocol. What do you want?")) {
+				wr.println("Ping!"); wr.flush();
+				if (sc.readLine().equals("Pong!")) {
 					wr.close(); sc.close();
 					return true;
 				}

@@ -22,8 +22,14 @@ public class Client {
 	 */
 	
 	public static ResultSet getRSbyP1(String query) {
-		ResultSet rs = null; //get by P1
+		BDServer bd = new BDServer();
+		ResultSet rs = (ResultSet) bd.executeQuery(query);
 		return rs;
+	}
+	
+	public static void updateBDbyP1(String query) {
+		BDServer bd = new BDServer();
+		bd.executeUpdate(query);
 	}
 	
 	
@@ -48,42 +54,42 @@ public class Client {
 		boolean isPharm = false;
 		
 		
-		System.out.println("Type your pesel:\n");
+		System.out.println("Wpisz swoj pesel:");
 		Scanner sc = new Scanner(System.in);
 		String pesel = sc.next();
-		System.out.println("Type your password: \n");
+		System.out.println("Wprowadź hasło:");
 		String password = sc.next();
 		//log in with p1 protocol
 		
-		String askIfDoctor = "select count(*) from \"dkm-healthcare\".lekarze where id_lekarz = " + pesel + ";";
+		String askIfDoctor = "select * from lekarze where id_lekarz = '" + pesel +"';";
 		ResultSet rs = getRSbyP1(askIfDoctor);
 		
+		
 		try {
-			if (rs.next()) {
-				if(rs.getInt(1) == 1) {
-					isDoctor = true;
-				}
+			if (rs.first()) {
+				
+				System.out.println("isDoctor");
+				isDoctor = true;
 				
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
-		String askIfPharmacist = "select aptekarz from \"dkm-healthcare\".osoby where pesel = " + pesel + ";";
+		String askIfPharmacist = "select aptekarz from osoby where pesel = '" + pesel + "';";
 		rs = getRSbyP1(askIfPharmacist);
 		
 		try {
-			if (rs.next()) {
-				if (rs.getBoolean(1)) {
-					isPharm = true;
-				}
+			if (rs.first() && rs.getBoolean(1)) {
+				System.out.println("isPharm");
+				isPharm = true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
 		while(true) {
-			System.out.println("Witamy w systemie dkm-healthcare! \n");
+			System.out.println("\nWitamy w systemie dkm-healthcare! \n");
 			System.out.println("Aby pracować w trybie pacjenta, wprowadź 1");
 			if (isDoctor) System.out.println("Aby pracować w trybie lekarza, wprowadź 2");
 			if (isPharm) System.out.println("Aby pracować w trybie aptekarza, wprowadź 3");

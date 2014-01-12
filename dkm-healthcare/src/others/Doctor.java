@@ -37,8 +37,8 @@ public class Doctor {
 		String patient = sc.next();
 		boolean my = false;
 		// check if it's my patient or not
-		String check1 = "select count(*) from \"dkm-healthcare\".osoby_info where pesel = " + patient + " and lekarz_rodzinny = " + pesel + ";";
-		String check2 = "select count(*) from \"dkm-healthcare\".pacjenci_specjalisci where pesel = " + patient + " and id_lekarz = " + pesel + ";";
+		String check1 = "select count(*) from osoby_info where pesel = '" + patient + "' and lekarz_rodzinny = '" + pesel + "';";
+		String check2 = "select count(*) from pacjenci_specjalisci where pesel = '" + patient + "' and id_lekarz = '" + pesel + "';";
 		ResultSet rs1 = Client.getRSbyP1(check1);
 		ResultSet rs2 = Client.getRSbyP1(check2);
 		int n = 0;
@@ -72,22 +72,23 @@ public class Doctor {
 			n = sc.nextInt();
 			switch(n) {
 			case 1:
-				query = "select info from \"dkm-healthcare\".osoby_info where pesel = " + patient + ";";
+				query = "select info from osoby_info where pesel = '" + patient + "';";
 				getResult(query, 1, true);
 				break;
 			case 2:
-				query = "select lek from \"dkm-healtcare\".osoby_leki where pesel = " + patient + ";";
+				query = "select lek from osoby_leki where pesel = '" + patient + "';";
 				getResult(query, 1, true);
 				break;
 			case 3:
-				query = "select alergia from \"dkm-healtcare\".osoby_alergie where pesel = " + patient + ";";
+				query = "select alergia from osoby_alergie where pesel = '" + patient + "';";
 				getResult(query, 1, true);
 				break;
 			case 4:
 				System.out.println("Wprowadź w jednej linii nazwę leku i dawkowanie:");
-				String lek = sc.nextLine();
-				query = "insert into \"dkm-healthcare\".recepty (pesel, id_lekarz, lek) values(" + patient + ", " + pesel + ", " + lek + ");";
-				Client.getRSbyP1(query);
+				sc.nextLine();
+				String lek =  sc.nextLine();
+				query = "insert into recepty (pesel, id_lekarz, lek) values('" + patient + "', '" + pesel + "', '" + lek + "');";
+				Client.updateBDbyP1(query);
 				break;
 			case 5:
 				addReferral(sc, patient);
@@ -99,8 +100,8 @@ public class Doctor {
 				if (my) {
 					workWithHistory(sc, patient);
 				} else {
-					query = "select email from \"dkm-healthcare\".osoby where pesel = ("
-							+ "select lekarz_rodzinny from \"dkm-healthcare\".osoby_info where pesel = " + patient + ");";
+					query = "select email from osoby where pesel = ("
+							+ "select lekarz_rodzinny from osoby_info where pesel = '" + patient + "');";
 					getResult(query, 1, true);
 				}
 				break;
@@ -121,7 +122,7 @@ public class Doctor {
 	 * @param columns (how many columns our ResultSet has)
 	 */
 	
-	public void printResult(ResultSet rs, int columns) {
+	public static void printResult(ResultSet rs, int columns) {
 		try {
 			while (rs.next()) {
 				for (int i=1; i<=columns; i++) {
@@ -169,19 +170,18 @@ public class Doctor {
 	private void realizeReferral(Scanner sc, String patient) {
 		System.out.println("Wprowadź numer skierowania:");
 		String nr = sc.next();
-		String query = "select * from skierowania where numer = " + nr + " and pesel = " + patient + ";";
+		String query = "select * from skierowania where numer = " + nr + " and pesel = '" + patient + "';";
 		ResultSet rs = Client.getRSbyP1(query);
 		try {
 			if (rs.next()) {
 				if (rs.getBoolean(5)) {
-					System.out.println("To skierowanie zostało już wcześniej zrealizowane!");
+					System.out.println("To skierowanie zostało już wcześniej zrealizowane!\n");
 				} else {
-					query = "update \"dkm-healthcare\".skierowania set zrealizowany = true, zrealizowana_przez = " + pesel + 
-							" where numer = " + nr + ";";
-					Client.getRSbyP1(query);
+					query = "update skierowania set zrealizowany = true where numer = " + nr + ";";
+					Client.updateBDbyP1(query);;
 				}
 			} else {
-				System.out.println("Następił błąd lub podane skierowanie nie istnieje!");
+				System.out.println("Następił błąd lub podane skierowanie nie istnieje!\n");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -200,7 +200,7 @@ public class Doctor {
 		int n = sc.nextInt();
 		switch(n) {
 		case 1:
-			String query = "select * from \"dkm-healthcare\".zabiegi;";
+			String query = "select * from zabiegi;";
 			getResult(query, 2, true);
 			break;
 		case 2:
@@ -210,7 +210,7 @@ public class Doctor {
 		}
 		System.out.println("\nWprowadź numer identyfikacyjny zabiegu, na jaki chcesz wystawić skierowanie:");
 		int id = sc.nextInt();
-		String checkId = "select count(*) from \"dkm-healthcare\".zabiegi where id_zabieg = " + id + ";";
+		String checkId = "select count(*) from zabiegi where id_zabieg = " + id + ";";
 		ResultSet rs = Client.getRSbyP1(checkId);
 		try {
 			if (rs.next()) {
@@ -218,8 +218,8 @@ public class Doctor {
 					System.out.println("Podany zabieg nie istnieje!");
 				}
 				else {
-					String query = "insert into \"dkm-healthcare\".skierowania (pesel, id_lekarz, id_zabieg) values(" + patient + ", " + pesel + ", " + id + ");";
-					Client.getRSbyP1(query);
+					String query = "insert into skierowania (pesel, id_lekarz, id_zabieg) values('" + patient + "', '" + pesel + "', " + id + ");";
+					Client.updateBDbyP1(query);
 				}
 			}
 		} catch (SQLException e) {
@@ -232,14 +232,14 @@ public class Doctor {
 	 */
 	
 	private void rights() {
-		String query = "select prawa from \"dkm-healthcare\".lekarze where id_lekarz = " + pesel + ";";
+		String query = "select prawa from lekarze where id_lekarz = '" + pesel + "';";
 		ResultSet rs = Client.getRSbyP1(query);
 		try {
 			if (rs.next()) {
 				if (rs.getBoolean(1)) {
-					System.out.println("Masz prawo wykonywania zawodu.");
+					System.out.println("Masz prawo wykonywania zawodu.\n");
 				} else {
-					System.out.println("Niestety nie posiadasz aktualnie prawa wykonywania zawodu.");
+					System.out.println("Niestety nie posiadasz aktualnie prawa wykonywania zawodu.\n");
 				}
 			}
 		} catch (SQLException e) {
@@ -258,8 +258,8 @@ public class Doctor {
 		System.out.println("Aby dodać miejsce pracy, wprowadź 3");
 		
 		ResultSet rs;
-		String query = "select * from \"dkm-healthcare\".placowki where id_placowki in "
-				+ "(select id_placowki from \"dkm-healthcare\".lekarze_placowki where id_lekarz = " + pesel + ";";
+		String query = "select * from placowki where id_placowka in "
+				+ "(select id_placowka from lekarze_placowki where id_lekarz = '" + pesel + "');";
 		int n = sc.nextInt();
 		switch(n) {
 		case 1:
@@ -272,14 +272,14 @@ public class Doctor {
 			printResult(rs, 6);
 			System.out.println("\nWprowadź numer identyfikacyjny placówki, którą chcesz usunąć ze swoich miejsc pracy:");
 			String nr = sc.next();
-			String delQuery = "delete from \"dkm-healthcare\".lekarze_placowki where id_placowki = " + nr + ";";
-			Client.getRSbyP1(delQuery);
+			String delQuery = "delete from lekarze_placowki where id_placowka = " + nr + ";";
+			Client.updateBDbyP1(delQuery);
 			break;
 		case 3:
 			System.out.println("Wprowadź numer identyfikacyjny placówki, którą chcesz dodać do swoich miejsc pracy:");
 			String id = sc.next();
-			String insQuery = "insert into \"dkm-healthcare\".lekarze_placowki values (" + pesel +", " + id + ");";
-			Client.getRSbyP1(insQuery);
+			String insQuery = "insert into lekarze_placowki values ('" + pesel +"', " + id + ");";
+			Client.updateBDbyP1(insQuery);
 			break;
 		}
 	}
@@ -306,21 +306,21 @@ public class Doctor {
 				onePatient(sc);
 				break;
 			case 2:
-				query = "select pesel, imie, nazwisko from \"dkm-healthcare\".osoby natural join \"dkm-healthcare\".osoby_info where lekarz_rodzinny = " +
-						pesel + ";";
+				query = "select pesel, imie, nazwisko from osoby natural join osoby_info where lekarz_rodzinny = '" +
+						pesel + "';";
 				getResult(query, 3, true);
 				break;
 			case 3:
-				query = "select pesel, imie, nazwisko from \"dkm-healthcare\".osoby natural join \"dkm-healthcare\".pacjenci_specjalisci where id_lekarz = " +
-						pesel + ";";
+				query = "select pesel, imie, nazwisko from osoby natural join pacjenci_specjalisci where id_lekarz = '" +
+						pesel + "';";
 				getResult(query, 3, true);
 				break;
 			case 4:
 				rights();
 				break;
 			case 5:
-				query = "select nazwa from \"dkm-healthcare\".lekarze_specjalizacje natural join \"dkm-healthcare\".specjalizacje_where id_lekarz = " +
-						pesel + ";";
+				query = "select nazwa from lekarze_specjalizacje natural join specjalizacje where id_lekarz = '" +
+						pesel + "';";
 				getResult(query, 1, true);
 				break;
 			case 6:

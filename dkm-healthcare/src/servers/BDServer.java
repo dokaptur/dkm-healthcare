@@ -1,6 +1,6 @@
 package servers;
 
-import java.io.IOException;
+import java.net.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -20,39 +20,26 @@ import servers.ServerSocketThread.ServerType;
 public class BDServer {
 	
 	Config config = new Config();
-	String url = "jdbc:postgresql:dudu";
-	String user = "dkm";
-	String passwd = "dkm";
+	String url = "jdbc:postgresql:dkm";
+	String user = "dudu";
+	String passwd = "ciap2000";
 	Connection conn; 
 	SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 	SSLServerSocketFactory sfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 	
 	public CachedRowSetImpl executeQuery(String query){
 		
-		try{
-		    Class.forName("org.postgresql.Driver");
-		    } catch (ClassNotFoundException cnfe){
-		      System.out.println("Could not find the JDBC driver!");
-		      System.exit(1);
-		    }
+		
 		ResultSet result = null;
 		try {
-		    conn = DriverManager.getConnection(url, user, passwd);
 		    Statement stat = conn.createStatement();
 		    stat.execute("SET search_path TO 'dkm-healthcare'");
-//		    System.out.println(query);
 		    result = stat.executeQuery(query);
 		} catch (SQLException sqle) {
 		       System.out.println("Could not connect");
 		       sqle.printStackTrace();
 		       System.exit(1);
-		} finally {
-			try {
-				conn.close();
-			} catch (SQLException e) {
-				System.out.println("Could not close connection");
-			}
-		}
+		} 
 		CachedRowSetImpl crs = null;
 		try {
 			crs = new CachedRowSetImpl();
@@ -64,10 +51,25 @@ public class BDServer {
 		return crs;
 	}
 	
+	public void executeUpdate(String query) {
+		try {
+		    Statement stat = conn.createStatement();
+		    stat.execute("SET search_path TO 'dkm-healthcare'");
+		    stat.executeUpdate(query);
+		} catch (SQLException sqle) {
+		       System.out.println("Could not connect");
+		       sqle.printStackTrace();
+		       System.exit(1);
+		}
+	}
+	
 	public BDServer() {
 		try {
-			conn = DriverManager.getConnection(url, user, passwd);
-		} catch (SQLException e) {
+		    Class.forName("org.postgresql.Driver");
+		    
+		    conn = DriverManager.getConnection(url, user, passwd);
+			
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -75,14 +77,27 @@ public class BDServer {
 	
 	public static void main(String[] args) {
 		BDServer bd = new BDServer();
-		try {
+		/*try {
 			SSLServerSocket server = (SSLServerSocket) bd.sfactory.createServerSocket(bd.config.BD1addr.getPort());
 			while (true) {
 				SSLSocket socket = (SSLSocket) server.accept();
 				ServerSocketThread thread = new ServerSocketThread(socket, ServerType.DB1, bd.config, bd.conn);
 				thread.run();
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} */
+		
+		
+		try {
+		ServerSocket server = new ServerSocket(bd.config.BD1addr.getPort());
+		while (true) {
+			Socket socket = server.accept();
+			ServerSocketThread thread = new ServerSocketThread(socket, ServerType.DB1, bd.config, bd.conn);
+			thread.run();
+			}
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 

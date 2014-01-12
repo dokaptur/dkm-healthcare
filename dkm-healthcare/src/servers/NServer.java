@@ -16,6 +16,7 @@ import javax.mail.internet.MimeMessage;
 import others.Config;
 
 
+
 /**
  * Class for Notification Server
  * @author dudu
@@ -25,9 +26,9 @@ import others.Config;
 public class NServer {
 	
 	Config config;
-	String historyQuery = "select * from historia_powiadomienia";
-	String left5Query = "select * from recepty_powiadomienia_5";
-	String expireQuery = "select * from recepty_powiadomienia_dzis";
+	String historyQuery = "select * from historia_powiadomienia;";
+	String left5Query = "select * from recepty_powiadomienia_5;";
+	String expireQuery = "select * from recepty_powiadomienia_dzis;";
 	
 	public NServer() {
 		config = new Config();
@@ -72,12 +73,14 @@ public class NServer {
 		NotifyType type;
 		
 		public Notifier(String query, NotifyType type) {
+			super();
 			this.query = query;
 			this.type = type;
 		}
 
 		@Override
 		public void run() {
+			System.out.println("TimerTask runs!"); //DEBUG
 			P3protocol protocol = new P3protocol(Site.Notify, config);
 			ResultSet result = protocol.getInfo(query);
 			NotifyPatients (result, type);
@@ -108,7 +111,7 @@ public class NServer {
 		    msg.setFrom(new InternetAddress(email));
 	        msg.addRecipient(Message.RecipientType.TO,
 	                         new InternetAddress("dokaptur@gmail.com"));
-	        msg.setSubject("Server error");
+	        msg.setSubject("dkm-healthcare notification");
 	        msg.setText(mailtext);
 
 	        t = session.getTransport("smtps");
@@ -175,8 +178,25 @@ public class NServer {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		
+		/* TEST TEST TEST
+		  //DZIAŁA!!! (na zwykłych socketach)
+		Config config = new Config();
+		P3protocol p3 = new P3protocol(Site.Notify, config);
+		for (Boolean b: p3.pingServers()) {
+			System.out.println(b);
+		}
+		ResultSet rs = p3.getInfo("select * from zabiegi;");
+		Doctor.printResult(rs, 2); */
+		
 		NServer nserver = new NServer();
 		
+		/* TEST TEST TEST - DZIAŁA !!!!
+		(nserver.new Notifier("select email, imie, nazwisko from osoby where email = 'dokaptur@gmail.com';", NotifyType.HISTORY)).run();
+		
+		Timer t = new Timer();
+		t.schedule(nserver.new Notifier(
+				"select email, imie, nazwisko from osoby where email = 'dokaptur@gmail.com';", NotifyType.HISTORY),
+				0, 60 * 1000); */
 		
 		
 		(new Timer()).scheduleAtFixedRate(nserver.new Pinger(), nserver.config.midnight.getTime(), 3600 * 1000);
@@ -187,15 +207,17 @@ public class NServer {
 		
 		(new Timer()).scheduleAtFixedRate(nserver.new Notifier(nserver.expireQuery, NotifyType.EXPIRE), nserver.config.midnight.getTime(), 3600 * 1000 * 12);
 		
+		
 		try {
-			ServerSocket server = new ServerSocket(2006);
+			ServerSocket server = new ServerSocket(nserver.config.Naddr.getPort());
 			while (true) {
 				Socket socket = server.accept();
 				ServerSocketThread thread = new ServerSocketThread(socket, ServerType.N, nserver.config);
 				thread.run();
 			}
 		} catch (Exception e) {
-		} 
+		}  
+		
 	}
 
 }

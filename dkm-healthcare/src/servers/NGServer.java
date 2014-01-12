@@ -22,7 +22,7 @@ public class NGServer {
 
 		@Override
 		public void run() {
-			P4protocol p4 = new P4protocol(P4Site.NG);
+			P4protocol p4 = new P4protocol(P4Site.NG, config);
 			boolean b = p4.PingNServer();
 			if (!b) {
 				NServer.Pinger p = ns.new Pinger();
@@ -37,7 +37,7 @@ public class NGServer {
 
 		@Override
 		public void run() {
-			P4protocol p4 = new P4protocol(P4Site.NG);
+			P4protocol p4 = new P4protocol(P4Site.NG, config);
 			boolean b = p4.PingNServer();
 			if (!b) {
 				NServer.Notifier l5 = ns.new Notifier(ns.left5Query, NotifyType.LEFT5);
@@ -55,7 +55,7 @@ public class NGServer {
 
 		@Override
 		public void run() {
-			P4protocol p4 = new P4protocol(P4Site.NG);
+			P4protocol p4 = new P4protocol(P4Site.NG, config);
 			boolean b = p4.PingNServer();
 			if (!b) {
 				NServer.Notifier p = ns.new Notifier(ns.historyQuery, NotifyType.HISTORY);
@@ -76,9 +76,9 @@ public class NGServer {
 		
 	}
 	
-	public static void main() {
-		NGServer ng = new NGServer();
+	public static void main(String[] args) {
 		
+		NGServer ng = new NGServer();
 		Calendar beforeMid = (Calendar) ng.config.midnight.clone();
 		Calendar beforepm4 = (Calendar) ng.config.pm4.clone();
 		beforeMid.add(Calendar.MINUTE, -5);
@@ -90,7 +90,7 @@ public class NGServer {
 		
 		(new Timer()).scheduleAtFixedRate(ng.new PrecriptionChecker(), beforeMid.getTime(), 3600 * 1000 * 12);
 		
-		(new Timer()).scheduleAtFixedRate(ng.new ImAlive(), ng.config.midnight.getTime(), 3600 * 1000 * 12);
+		(new Timer()).scheduleAtFixedRate(ng.new ImAlive(), ng.config.midnight.getTime(), 3600 * 1000 * 12); 
 	}
 	
 	
