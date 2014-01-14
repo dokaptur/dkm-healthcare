@@ -5,14 +5,30 @@ import java.net.InetSocketAddress;
 import java.util.Calendar;
 import java.util.Scanner;
 
+/**
+ * Class with configuration
+ * @author dudu
+ *
+ */
+
 public class Config {
+	
+	/**
+	 * addresses of servers
+	 */
 	public InetSocketAddress BD1addr;
 	public InetSocketAddress BD2addr;
 	public InetSocketAddress Naddr;
 	public InetSocketAddress NGaddr;
 	
+	/**
+	 * password to application email account
+	 */
 	public String password;
 	
+	/**
+	 * instances of Calendar classes - to keep fixed hours
+	 */
 	public Calendar midnight = Calendar.getInstance();
 	public Calendar pm4 = Calendar.getInstance();
 	
@@ -23,7 +39,9 @@ public class Config {
 	
 	public static String adminMail = "dokaptur@gmail.com";
 	
-	
+	/**
+	 * Method to set appropriate hours in Calendar classes
+	 */
 	void setCallendar() {
 		midnight.set(Calendar.HOUR, 1);
 		midnight.set(Calendar.AM_PM, Calendar.AM);
@@ -36,6 +54,10 @@ public class Config {
 		pm4.set(Calendar.SECOND, 0);
 	}
 	
+	/**
+	 * Constructor 
+	 * fills runs setCalendar and fillAdresses methods
+	 */
 	public Config() {
 		//fillAdresses();
 		setCallendar();
@@ -48,6 +70,9 @@ public class Config {
 		NGaddr = new InetSocketAddress("localhost", 2007);
 	}
 	
+	/**
+	 * Method to read and fill addresses and password from configuration file
+	 */
 	void fillAdresses() {
 		try {
 			//FileInputStream fis = new FileInputStream(System.getProperty("config"));

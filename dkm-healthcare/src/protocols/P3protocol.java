@@ -5,7 +5,9 @@ import java.net.*;
 import java.sql.*;
 import java.util.*;
 
-import javax.net.ssl.SSLSocket;
+//import javax.net.ssl.SSLServerSocket;
+//import javax.net.ssl.SSLServerSocketFactory;
+//import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import com.sun.rowset.CachedRowSetImpl;
@@ -33,8 +35,6 @@ public class P3protocol {
 	/**
 	 * addresses of DataBasis servers
 	 */
-	
-	
 	public ArrayList<InetSocketAddress> dbAdresses = new ArrayList<>();
 	
 	/**
@@ -62,16 +62,17 @@ public class P3protocol {
 		PING, INFO;
 	}
 	
-	
+	/**
+	 * instance of enum Site - filled in inside constructor function
+	 */
 	Site site;
 	
 	/**
 	 * constructor;
-	 * we fill in it addresses of servers from config object
+	 * we fill in here addresses of servers from config object
 	 * @param site - we tell protocol as which server we will use it
+	 * @param config - we give to protocol an instance of Config class
 	 */
-	
-	
 	public  P3protocol(Site site, Config config) {
 		this.site = site;
 		this.config = config;
@@ -86,7 +87,7 @@ public class P3protocol {
 	
 	/**
 	 * The most important method. Here is implemented whole communication.
-	 * @param socket, request, connection with Data Basis on DB Server
+	 * @param socket, request, SQL query connection with Data Basis on DB Server
 	 * @return null if we are in DBServer or if error occurs. Otherwise Boolean while pinging and ResultSet while asking DB about some info.  
 	 *
 	 * @throws Exception
@@ -143,6 +144,7 @@ public class P3protocol {
 					wr.println("Port number for new connection?"); wr.flush();
 					String s = sc.readLine(); System.out.println(s);
 					int port = Integer.parseInt(s);
+					//SSLSocket objsocket = (SSLSocket) factory.createSocket();
 					Socket objsocket = new Socket();
 					objsocket.connect(new InetSocketAddress(socket.getInetAddress(), port), 100);
 					ObjectOutputStream oos = new ObjectOutputStream(objsocket.getOutputStream());
@@ -198,6 +200,8 @@ public class P3protocol {
 				while (s.equals("Ok, give me query")) {
 					wr.println(query); wr.flush();
 					
+					//SSLServerSocketFactory sfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+					//SSLServerSocket objss = (SSLServerSocket) sfactory.createServerSocket(0);
 					ServerSocket objss = new ServerSocket(0);
 					s = sc.readLine(); System.out.println(); // Port number for new connection?
 					wr.println(objss.getLocalPort()); wr.flush();
@@ -224,7 +228,7 @@ public class P3protocol {
 	
 	/**
 	 * checks if DBservers are available
-	 * @return Array of "availability"
+	 * @return Boolean Array of "availability"
 	 */
 	
 	
@@ -264,9 +268,8 @@ public class P3protocol {
 	}
 	
 	/**
-	 * asks DataBasis servers about prescriptions or modifications in history we should send notifications about
-	 *  (together with email addresses and names of patients) or last modified history 
-	 * @param enum to determine what do we want to ask about
+	 * asks DataBase servers about some info from Data Base
+	 * @param SQL query (String)
 	 * @return ResultSet from DBServers 
 	 */
 	

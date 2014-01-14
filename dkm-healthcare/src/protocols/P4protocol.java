@@ -43,6 +43,7 @@ public class P4protocol {
 	/**
 	 * constructor
 	 * @param site (we want to know of we are in NServer or NGServer
+	 * @param config (an instance of Config class)
 	 */
 	public P4protocol (P4Site site, Config config) {
 		this.site = site;

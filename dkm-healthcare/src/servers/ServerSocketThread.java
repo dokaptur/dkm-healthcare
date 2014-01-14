@@ -44,12 +44,18 @@ public class ServerSocketThread implements Runnable {
 	ServerType type;
 	
 	/**
-	 * Constructor for NServer and NGServer
-	 * @param socket
+	 * An instance of Config class
 	 */
-	
 	Config config;
 	
+	
+	
+	/**
+	 * Constructor for NServer and NGServer
+	 * @param socket (socket already connected)
+	 * @param type (type of server)
+	 * @param config
+	 */
 	public ServerSocketThread(Socket socket, ServerType type, Config config) {
 		this.config = config;
 		this.type = type;
@@ -58,8 +64,10 @@ public class ServerSocketThread implements Runnable {
 	
 	/**
 	 * Constructor for DBServers
-	 * @param socket
-	 * @param con
+	 * @param socket (socket already connected)
+	 * @param type (type of server)
+	 * @param config
+	 * @param con (connection with Data Base)
 	 */
 	public ServerSocketThread(Socket socket, ServerType type, Config config, Connection con) {
 		this.config = config;
@@ -69,7 +77,7 @@ public class ServerSocketThread implements Runnable {
 	}
 	
 	/**
-	 * method from Runnable interface
+	 * method from Runnable interface - gets message from sockets and opens  appropriate protocol 
 	 */
 
 	@Override

@@ -18,7 +18,7 @@ public class Client {
 	/**
 	 * Method to get ResultSet from DBServers using P1 protocol.
 	 * @param query
-	 * @return
+	 * @return ResultSet
 	 */
 	
 	public static ResultSet getRSbyP1(String query) {
@@ -27,6 +27,11 @@ public class Client {
 		return rs;
 	}
 	
+	/**
+	 * Method to send modifying (insert, update, delete) query to DBServers 
+	 * Uses P1protocol as well 
+	 * @param query
+	 */
 	public static void updateBDbyP1(String query) {
 		BDServer bd = new BDServer();
 		bd.executeUpdate(query);
