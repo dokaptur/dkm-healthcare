@@ -8,16 +8,31 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
-
+/**
+ * A class to work in patient mode. It is created in Client class if client chose to work as patient. 
+ * @author michal
+ *
+ */
 public class Patient {
+	
+	/**
+	 * pesel of client
+	 */
 	private String pesel;
 	private Scanner scan = new Scanner(System.in);
 
-	
+	/**
+	 * constructor
+	 * @param pesel
+	 */
 	public Patient(String pesel) {
 		this.pesel = pesel;
 	}
 	
+	/**
+	 * Main function. User can choose what he/she would like to do.
+	 * 
+	 */
 	public void perform() {
 		while(true){
 			System.out.println( "W czym moge sluzyc?\n"+
@@ -44,6 +59,11 @@ public class Patient {
 		}
 	}
 
+	/**
+	 * It connects to database, executes query and returns result as a ResultSet
+	 * @param query
+	 * @return
+	 */
 	private ResultSet executeQuery(String query){
 		String  url="jdbc:postgresql:michal",
 				user="med",
@@ -76,14 +96,24 @@ public class Patient {
 		return result;
 	}
 
+	/**
+	 * It downloads patient's history to path specified by user.
+	 */
 	private void disease() {
 		System.out.println("\nPodaj sciezke do zapisu pliku\n");
 		String path=scan.next(".*[a-zA-Z\\/]*");
 		download(path);
 	}
 	
+	/**
+	 * Manages downloading.
+	 * @param path
+	 */
 	private void download(String path){}
 
+	/**
+	 * It shows all information about user, including basic info, drugs, referrals etc
+	 */
 	private void info() {
 		//dane podstawowe
 		System.out.println("\nInformacje podstawowe");
@@ -116,6 +146,9 @@ public class Patient {
 
 	}
 
+	/**
+	 * It displays details about user's prescriptions.
+	 */
 	private void recepts_info() {
 		System.out.println("\nnumer, lek, data_waznosci, zrealizowana");
 		String query="SELECT numer, lek, data_waznosci, zrealizowana FROM recepty "+
@@ -123,6 +156,9 @@ public class Patient {
 		printResult(executeQuery(query), false);
 	}
 	
+	/**
+	 * It displays details about user's referrals.
+	 */
 	private void referrals_info() {
 		System.out.println("\nnumer, nazwa, zrealizowany");
 		String query="SELECT numer, nazwa, zrealizowany FROM skierowania NATURAL LEFT JOIN zabiegi "+
@@ -130,6 +166,9 @@ public class Patient {
 		printResult(executeQuery(query), false);
 	}
 
+	/**
+	 * User can find info about given operations in given city.
+	 */
 	private void operations_info() {
 		String query,miasto,zabieg;
 		System.out.println("podaj miasto lub wpisz menu aby wrocic do menu glownego");
@@ -149,7 +188,9 @@ public class Patient {
 		printResult(executeQuery(query), false);
 	}
 
-	
+	/**
+	 * User can find info about given specialists in given city.
+	 */
 	private void specialists_info() {
 		String query,miasto,specjalista;
 		System.out.println("podaj miasto lub wpisz menu aby wrocic do menu glownego");
@@ -169,7 +210,9 @@ public class Patient {
 		printResult(executeQuery(query), false);
 	}
 
-	
+	/**
+	 * It displays info about user's family doc.
+	 */
 	private void familyDoc() {
 		String query="SELECT imie, nazwisko, nazwa, p.adres, nr_tel "+
 					 "FROM osoby_info oi JOIN lekarze_placowki on lekarz_rodzinny=id_lekarz NATURAL JOIN placowki p "+
@@ -180,6 +223,11 @@ public class Patient {
 		printResult(executeQuery(query), false);
 	}
 
+	/**
+	 * It displays results stored in result. If variable continuee equals false, then it comes back to calling function. Otherwise it goes to menu, or exits.
+	 * @param result
+	 * @param continuee
+	 */
 	private void printResult(ResultSet result, boolean continuee) {
 		String cmd;
 		try {
@@ -213,6 +261,9 @@ public class Patient {
 		}
 	}
 
+	/**
+	 * It says bay bay.
+	 */
 	private void byebye() {
 		System.out.println("good night and good luck");
 	}
