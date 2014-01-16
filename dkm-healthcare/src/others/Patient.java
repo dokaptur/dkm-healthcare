@@ -1,12 +1,9 @@
 package others;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+
 import java.util.Scanner;
+
+import servers.Client;
 
 /**
  * A class to work in patient mode. It is created in Client class if client chose to work as patient. 
@@ -58,12 +55,12 @@ public class Patient {
 			}
 		}
 	}
-
+	/*
 	/**
 	 * It connects to database, executes query and returns result as a ResultSet
 	 * @param query
 	 * @return
-	 */
+	 
 	private ResultSet executeQuery(String query){
 		String  url="jdbc:postgresql:michal",
 				user="med",
@@ -94,7 +91,7 @@ public class Patient {
 			}
 		}
 		return result;
-	}
+	} */
 
 	/**
 	 * It downloads patient's history to path specified by user.
@@ -119,30 +116,30 @@ public class Patient {
 		System.out.println("\nInformacje podstawowe");
 		System.out.println("imie, nazwisko, pesel, data_urodzenia, adres");
 		String query="SELECT imie, nazwisko, pesel, data_urodzenia, adres FROM osoby WHERE pesel='"+pesel+"';";
-		printResult(executeQuery(query),true);
+		Client.printResult(Client.getRSbyP1(query), true, scan);
 
 		//informacje z tabeli osoby_info
 		System.out.println("\nInformacje dodatkowe");
 		System.out.println("imie, nazwisko, info, historia modyfikacja");
 		query="SELECT imie, nazwisko, info, historia_modyfikacja FROM "+
 			  "osoby o JOIN osoby_info oi ON lekarz_rodzinny=o.pesel  WHERE oi.pesel='"+pesel+"';";
-		printResult(executeQuery(query),true);
+		Client.printResult(Client.getRSbyP1(query), true, scan);
 
 		//informacje o alergiach
 		System.out.println("\nAlergie");
 		query="SELECT alergia FROM osoby_alergie WHERE pesel='"+pesel+"';";
-		printResult(executeQuery(query),true);
+		Client.printResult(Client.getRSbyP1(query), true, scan);
 
 		//informacje o lekach
 		System.out.println("\nLeki");
 		query="SELECT lek FROM osoby_leki WHERE pesel='"+pesel+"';";
-		printResult(executeQuery(query),true);
+		Client.printResult(Client.getRSbyP1(query), true, scan);
 
 		//informacje o specjalistach
 		System.out.println("\nInformacje o specjalistach");
 		System.out.println("imie, nazwisko");
 		query="SELECT s.imie, s.nazwisko FROM osoby o NATURAL JOIN pacjenci_specjalisci join osoby s on id_lekarz=s.pesel WHERE o.pesel='"+pesel+"';";
-		printResult(executeQuery(query),false);
+		Client.printResult(Client.getRSbyP1(query), true, scan);
 
 	}
 
@@ -153,7 +150,7 @@ public class Patient {
 		System.out.println("\nnumer, lek, data_waznosci, zrealizowana");
 		String query="SELECT numer, lek, data_waznosci, zrealizowana FROM recepty "+
 					 "WHERE pesel='"+pesel+"' ORDER BY 4 DESC;";
-		printResult(executeQuery(query), false);
+		Client.printResult(Client.getRSbyP1(query), false, scan);
 	}
 	
 	/**
@@ -163,7 +160,7 @@ public class Patient {
 		System.out.println("\nnumer, nazwa, zrealizowany");
 		String query="SELECT numer, nazwa, zrealizowany FROM skierowania NATURAL LEFT JOIN zabiegi "+
 					 "WHERE pesel='"+pesel+"' ORDER BY 3 DESC, 1;";
-		printResult(executeQuery(query), false);
+		Client.printResult(Client.getRSbyP1(query), false, scan);
 	}
 
 	/**
@@ -185,7 +182,7 @@ public class Patient {
 		} while(true);		query="SELECT p.nazwa, typ, adres, nr_tel FROM placowki p NATURAL JOIN placowki_zabiegi "+
 					 "JOIN zabiegi z using (id_zabieg) WHERE miasto='"+miasto+"' AND z.nazwa='"+zabieg+"';";
 		System.out.println("\nnazwa, typ, adres, nr_tel");
-		printResult(executeQuery(query), false);
+		Client.printResult(Client.getRSbyP1(query), false, scan);
 	}
 
 	/**
@@ -207,7 +204,7 @@ public class Patient {
 					 "NATURAL JOIN lekarze_specjalizacje JOIN specjalizacje s using (id_spec) WHERE miasto='"+miasto+
 					 "' AND s.nazwa='"+specjalista+"';";
 		System.out.println("\nnazwa, typ, adres, nr_tel");
-		printResult(executeQuery(query), false);
+		Client.printResult(Client.getRSbyP1(query), false, scan);
 	}
 
 	/**
@@ -220,47 +217,10 @@ public class Patient {
 					 "WHERE oi.pesel='"+pesel+"' AND typ='przychodnia'";
 
 		System.out.println("imie, nazwisko, nazwa, adres, nr_tel");
-		printResult(executeQuery(query), false);
+		Client.printResult(Client.getRSbyP1(query), false, scan);
 	}
 
-	/**
-	 * It displays results stored in result. If variable continuee equals false, then it comes back to calling function. Otherwise it goes to menu, or exits.
-	 * @param result
-	 * @param continuee
-	 */
-	private void printResult(ResultSet result, boolean continuee) {
-		String cmd;
-		try {
-			ResultSetMetaData metaData = result.getMetaData();
-		    int cc = metaData.getColumnCount();
-		    
-		    while (result.next()) {
-		    	for (int i = 1; i<=cc ; ++i){
-		    		if (i!=1) System.out.print(", ");
-		    		System.out.print(result.getString(i));
-		    	}
-		    	System.out.println();
-		    }
-		    System.out.println();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				result.close();
-			} catch (SQLException ex) {
-				System.out.println("cannot close resultset in recepts");
-			}
-		}
-		if (!continuee) {
-			System.out.println("aby powrocic do menu wpisz menu, aby zakonczyc wpisz exit");
-			do {
-				if ( (cmd=scan.nextLine()).equals("exit") ) System.exit(1);
-				else if (cmd.equals("menu")) return;
-				else continue;
-			} while (true);
-		}
-	}
-
+	
 	/**
 	 * It says bay bay.
 	 */

@@ -55,33 +55,29 @@ public class Doctor {
 		if (n > 0) my = true;
 		
 		while(true) {
-			System.out.println("Aby wyświetlić wżne informacje o pacjencie, wprowadź 1");
-			System.out.println("Aby wyświetlić obecnie przyjmowane leki przez pacjenta, wprowadź 2");
-			System.out.println("Aby wyświetlić alergie pacjenta, wprowadź 3");
+			System.out.println("Aby wyświetlić lub zmodyfikować wżne informacje o pacjencie, wprowadź 1");
+			System.out.println("Aby wyświetlić  lub zmodyfikować obecnie przyjmowane leki przez pacjenta, wprowadź 2");
+			System.out.println("Aby wyświetlić lub zmodyfikować alergie pacjenta, wprowadź 3");
 			System.out.println("Aby wystawić receptę, wprowadź 4");
 			System.out.println("Aby wystawić skierowanie, wprowadź 5");
 			System.out.println("Aby zrealizować skierowanie, wprowadź 6");
 			if (my) {
-				System.out.println("Aby zobaczyć lub zmodyfikować historię choroby pacjenta, wprowadź 7");
+				System.out.println("Aby ściągnąć lub zmodyfikować historię choroby pacjenta, wprowadź 7");
 			} else {
 				System.out.println("Aby dostać adres email do lekarza rodzinnego tego pacjenta, wprowadź 7");
 			}
-			System.out.println("Aby zakończyć pracę z tym pacjentem, wprowadź 8");
+			System.out.println("Aby zakończyć pracę z tym pacjentem, wprowadź 0");
+			System.out.println();
 			
 			String query;
 			n = sc.nextInt();
 			switch(n) {
 			case 1:
-				query = "select info from osoby_info where pesel = '" + patient + "';";
-				getResult(query, 1, true);
-				break;
+				patientInfo(sc, patient);
 			case 2:
-				query = "select lek from osoby_leki where pesel = '" + patient + "';";
-				getResult(query, 1, true);
-				break;
+				patientPharm(sc, patient);
 			case 3:
-				query = "select alergia from osoby_alergie where pesel = '" + patient + "';";
-				getResult(query, 1, true);
+				patientAllergy(sc, patient);
 				break;
 			case 4:
 				System.out.println("Wprowadź w jednej linii nazwę leku i dawkowanie:");
@@ -102,7 +98,7 @@ public class Doctor {
 				} else {
 					query = "select email from osoby where pesel = ("
 							+ "select lekarz_rodzinny from osoby_info where pesel = '" + patient + "');";
-					getResult(query, 1, true);
+					Client.printResult(Client.getRSbyP1(query), false, sc);
 				}
 				break;
 			case 8:
@@ -114,13 +110,13 @@ public class Doctor {
 			}
 		}
 	}
-	
+	/*
 	/**
 	 * short but very important method.
 	 * Prints results of select queries onto StdIn
 	 * @param rs 
 	 * @param columns (how many columns our ResultSet has)
-	 */
+	 
 	
 	public static void printResult(ResultSet rs, int columns) {
 		try {
@@ -133,21 +129,122 @@ public class Doctor {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	} */
+	
+	/**
+	 * Method to show or modify important info about patient
+	 * @param sc
+	 * @param patient
+	 */
+	
+	private void patientInfo(Scanner sc, String patient) {
+		System.out.println("Aby wyświetlić informacje o pacjencie, wprowadź 1");
+		System.out.println("Aby dodać coś do informacji o pacjencie, wprowadź 2");
+		System.out.println("Aby zmienić informacje o pacjencie, wprowadź 3\n");
+		int n = sc.nextInt();
+		String query = "select info from osoby_info where pesel = '" + patient + "';";
+		ResultSet rs = Client.getRSbyP1(query);
+		String info = null;
+		try {
+			rs.next();
+			info = rs.getString(1);
+			rs.beforeFirst();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		switch (n) {
+		case 1:
+			Client.printResult(rs, false, sc);
+			break;
+		case 2 :
+			System.out.println("Wprowadź w jednej lini informację, którą chcesz dodać:");
+			sc.nextLine();
+			String info2 = sc.nextLine();
+			if (Client.updateBDbyP1("update osoby_info set info = " + info + info2 + "where pesel = '" + patient + "';")) {
+				System.out.println("\nInformacje zostały dodane.\n");
+			} else {
+				System.out.println("\nNastąpił bład!\n");
+			}
+			break;
+		
+		case 3 :
+			System.out.println("Wprowadź w jednej linii informację, która ma zastąpic informację o pacjencie.");
+			sc.nextLine();
+			info2 = sc.nextLine();
+			System.out.println("\nJesteś pewien, że chcesz nadpisać informacje o tym pacjencie? Jeśli tak, wprowadź 1" + 
+					", w przeciwnym przypadku wprowadź 0\n");
+			int conf = sc.nextInt();
+			if (conf == 0) break;
+			if (Client.updateBDbyP1("update osoby_info set info = " + info + info2 + "where pesel = '" + patient + "';")) {
+				System.out.println("\nInformacje zostały zmodyfikowane.\n");
+			} else {
+				System.out.println("\nNastąpił bład!\n");
+			}
+			break;
+		}
 	}
 	
 	/**
-	 * Method to get ResultSet using P1.
-	 * @param query
-	 * @param columns
-	 * @param print
+	 * Method to show or modify patient's drugs
+	 * @param sc
+	 * @param patient
 	 */
 	
-	private void getResult(String query, int columns, boolean print) {
-		ResultSet rs = Client.getRSbyP1(query);
-		if (print) {
-			printResult(rs, columns);
+	private void patientPharm(Scanner sc, String patient) {
+		String query = "select lek from osoby_leki where pesel = '" + patient + "';";
+		System.out.println("Aby wyświetlić obecnie przyjmowane leki, wprowadź 1");
+		//System.out.println("Aby usunąć któryś z obecnie przyjmowanych leków, wprowadź 2");
+		System.out.println("Aby dodać obecnie przyjmowany lek, wprowadź 2\n");
+		int n = sc.nextInt();
+		switch (n) {
+		case 1 :
+			query = "select lek from osoby_leki where pesel = '" + patient + "';";
+			Client.printResult(Client.getRSbyP1(query), true, sc);
+			break;
+		case 2 :
+			System.out.println("Wprowadź w jednej lini lek, który chcesz dodać");
+			sc.nextLine();
+			String lek = sc.nextLine();
+			if (Client.updateBDbyP1("insert into osoby_leki values('" + patient + "', '" + lek + "');")) {
+				System.out.println("\nLek został dodany.\n");
+			} else {
+				System.out.println("\nNastąpił bład!\n");
+			}
+			break;
 		}
 	}
+	
+	/**
+	 * Method to show or modify patient's allergies
+	 * @param sc
+	 * @param patient
+	 */
+	
+	private void patientAllergy(Scanner sc, String patient) {
+		String query = "select alergia from osoby_alergie where pesel = '" + patient + "';";
+		
+		System.out.println("Aby wyświetlić alergie, wprowadź 1");
+		//System.out.println("Aby usunąć któryś z obecnie przyjmowanych leków, wprowadź 2");
+		System.out.println("Aby dodać alergie, wprowadź 2\n");
+		int n = sc.nextInt();
+		switch (n) {
+		case 1 :
+			Client.printResult(Client.getRSbyP1(query), true, sc);
+			break;
+		case 2 :
+			System.out.println("Wprowadź w jednej lini alergię, który chcesz dodać");
+			sc.nextLine();
+			String al = sc.nextLine();
+			if (Client.updateBDbyP1("insert into osoby_alergie values('" + patient + "', '" + al + "');")) {
+				System.out.println("\nLek został dodany.\n");
+			} else {
+				System.out.println("\nNastąpił bład!\n");
+			}
+			break;
+		}
+	}
+	
 	
 	/**
 	 * Method to download, modify and upload history
@@ -156,7 +253,25 @@ public class Doctor {
 	 */
 	
 	private void workWithHistory(Scanner sc, String patient) {
-		
+		System.out.println("Aby ściągnąć historię choroby pacjenta, wprowadź 1");
+		System.out.println("Aby dodać pliki do historii choroby pacjenta, wprowadź 2");
+		System.out.println("Jeśli chcesz wrócić, wprowadź 0\n");
+		int n = sc.nextInt();
+		//String path = null;
+		switch (n) {
+		case 1:
+			System.out.println("Wprowadź ścieżkę do folderu, do którego chcesz ściągnąć folder z historią choroby:");
+			// path = sc.next();
+			// do something
+			break;
+		case 2 :
+			System.out.println("Wprowadź ścieżkę do pliku, który chcesz dodać do historii choroby pacjenta:");
+			// path = sc.next();
+			// do something
+			break;
+		case 3 :
+			return;
+		}
 	}
 	
 	/**
@@ -201,12 +316,12 @@ public class Doctor {
 		switch(n) {
 		case 1:
 			String query = "select * from zabiegi;";
-			getResult(query, 2, true);
+			Client.printResult(Client.getRSbyP1(query), true, sc);
 			break;
 		case 2:
 			break;
 		default:
-			System.out.println("Nastąpił błąd lub została wprowadzona nieprawidłowa wartość. Spróbuj jeszcze raz.");	
+			System.out.println("\nNastąpił błąd lub została wprowadzona nieprawidłowa wartość. Spróbuj jeszcze raz.\n");	
 		}
 		System.out.println("\nWprowadź numer identyfikacyjny zabiegu, na jaki chcesz wystawić skierowanie:");
 		int id = sc.nextInt();
@@ -215,11 +330,15 @@ public class Doctor {
 		try {
 			if (rs.next()) {
 				if (rs.getInt(1) == 0) {
-					System.out.println("Podany zabieg nie istnieje!");
+					System.out.println("\nPodany zabieg nie istnieje!\n");
 				}
 				else {
 					String query = "insert into skierowania (pesel, id_lekarz, id_zabieg) values('" + patient + "', '" + pesel + "', " + id + ");";
-					Client.updateBDbyP1(query);
+					if (Client.updateBDbyP1(query)) {
+						System.out.println("\nSkierowanie zostało dodane.\n");
+					} else {
+						System.out.println("\nNastąpił błąd!\n");
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -264,22 +383,32 @@ public class Doctor {
 		switch(n) {
 		case 1:
 			rs = Client.getRSbyP1(query);
-			printResult(rs, 6);
+			System.out.println("\nid_placowki, typ, nazwa, adres, miasto, numer telefonu\n");
+			Client.printResult(rs, true, sc);
 			break;
 		case 2:
 			System.out.println("Pracujesz w następujących placówkach:\n");
 			rs = Client.getRSbyP1(query);
-			printResult(rs, 6);
+			System.out.println("\nid_placowki, typ, nazwa, adres, miasto, numer telefonu\n");
+			Client.printResult(rs, false, sc);
 			System.out.println("\nWprowadź numer identyfikacyjny placówki, którą chcesz usunąć ze swoich miejsc pracy:");
 			String nr = sc.next();
 			String delQuery = "delete from lekarze_placowki where id_placowka = " + nr + ";";
-			Client.updateBDbyP1(delQuery);
+			if (Client.updateBDbyP1(delQuery)) {
+				System.out.println("\nPlacówka została usunięta z Twoich miejsc pracy.\n");
+			} else {
+				System.out.println("\nNastąpił błąd!\n");
+			}
 			break;
 		case 3:
 			System.out.println("Wprowadź numer identyfikacyjny placówki, którą chcesz dodać do swoich miejsc pracy:");
 			String id = sc.next();
 			String insQuery = "insert into lekarze_placowki values ('" + pesel +"', " + id + ");";
-			Client.updateBDbyP1(insQuery);
+			if (Client.updateBDbyP1(insQuery)) {
+				System.out.println("\nPlacówka została dodana do Twoich miejsc pracy.\n");
+			} else {
+				System.out.println("\nNastąpił błąd!\n");
+			}
 			break;
 		}
 	}
@@ -308,12 +437,12 @@ public class Doctor {
 			case 2:
 				query = "select pesel, imie, nazwisko from osoby natural join osoby_info where lekarz_rodzinny = '" +
 						pesel + "';";
-				getResult(query, 3, true);
+				Client.printResult(Client.getRSbyP1(query), true, sc);
 				break;
 			case 3:
 				query = "select pesel, imie, nazwisko from osoby natural join pacjenci_specjalisci where id_lekarz = '" +
 						pesel + "';";
-				getResult(query, 3, true);
+				Client.printResult(Client.getRSbyP1(query), true, sc);
 				break;
 			case 4:
 				rights();
@@ -321,7 +450,7 @@ public class Doctor {
 			case 5:
 				query = "select nazwa from lekarze_specjalizacje natural join specjalizacje where id_lekarz = '" +
 						pesel + "';";
-				getResult(query, 1, true);
+				Client.printResult(Client.getRSbyP1(query), true, sc);
 				break;
 			case 6:
 				workplaces(sc);

@@ -1,9 +1,9 @@
 package servers;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Scanner;
-
 
 import others.*;
 
@@ -32,10 +32,51 @@ public class Client {
 	 * Uses P1protocol as well 
 	 * @param query
 	 */
-	public static void updateBDbyP1(String query) {
+	public static boolean updateBDbyP1(String query) {
 		BDServer bd = new BDServer();
 		bd.executeUpdate(query);
+		return true;
 	}
+	
+	/**
+	 * It displays results stored in result. If variable continuee equals false, then it comes back to calling function. Otherwise it goes to menu, or exits.
+	 * @param result
+	 * @param continuee
+	 * @param scaner
+	 */
+	public static void printResult(ResultSet result, boolean continuee, Scanner scan) {
+		String cmd;
+		try {
+			ResultSetMetaData metaData = result.getMetaData();
+		    int cc = metaData.getColumnCount();
+		    
+		    while (result.next()) {
+		    	for (int i = 1; i<=cc ; ++i){
+		    		if (i!=1) System.out.print(", ");
+		    		System.out.print(result.getString(i));
+		    	}
+		    	System.out.println();
+		    }
+		    System.out.println();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				result.close();
+			} catch (SQLException ex) {
+				System.out.println("cannot close resultset in recepts");
+			}
+		}
+		if (!continuee) {
+			System.out.println("aby powrocic do menu wpisz menu, aby zakonczyc wpisz exit");
+			do {
+				if ( (cmd=scan.nextLine()).equals("exit") ) System.exit(1);
+				else if (cmd.equals("menu")) return;
+				else continue;
+			} while (true);
+		}
+	}
+
 	
 	
 	/**
@@ -66,14 +107,13 @@ public class Client {
 		String password = sc.next();
 		//log in with p1 protocol
 		
-		String askIfDoctor = "select * from lekarze where id_lekarz = '" + pesel +"';";
+		String askIfDoctor = "select prawa from lekarze where id_lekarz = '" + pesel +"';";
 		ResultSet rs = getRSbyP1(askIfDoctor);
 		
 		
 		try {
-			if (rs.first()) {
+			if (rs.next() && rs.getBoolean(1)) {
 				
-				System.out.println("isDoctor");
 				isDoctor = true;
 				
 			}
@@ -98,7 +138,8 @@ public class Client {
 			System.out.println("Aby pracować w trybie pacjenta, wprowadź 1");
 			if (isDoctor) System.out.println("Aby pracować w trybie lekarza, wprowadź 2");
 			if (isPharm) System.out.println("Aby pracować w trybie aptekarza, wprowadź 3");
-			System.out.println("Aby zakończyć program, wprowadź 5");
+			System.out.println("Aby zmienić hasło, wprowadź 4");
+			System.out.println("Aby zakończyć program, wprowadź 0");
 			
 			int i = sc.nextInt();
 			switch(i) {
@@ -116,7 +157,7 @@ public class Client {
 			case 4:
 				changePassword();
 				break;
-			case 5:
+			case 0:
 				System.out.println("Do zobaczenia!\n");
 				sc.close();
 				return;

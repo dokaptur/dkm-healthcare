@@ -1,5 +1,6 @@
 package others;
 
+import java.sql.ResultSet;
 import java.util.Scanner;
 
 import servers.Client;
@@ -34,7 +35,23 @@ public class Pharmacist {
 		String nr = sc.next();
 		String query = "update recepty set zrealizowana = true, zrealizowana_przez = '" + pesel + 
 				"' where numer = " + nr + ";";
-		Client.updateBDbyP1(query);
+		ResultSet rs = Client.getRSbyP1("select zrealizowana from recepty where numer = " + nr + ";");
+		
+		try {
+			if (rs.next() && rs.getBoolean(1)) {
+			} else {
+				System.out.println("\nTa recepta już wcześniej została zrealizowana!\n");
+			}
+			
+		} catch (Exception e) {
+			System.out.println("\nNastąpił błąd!\n");
+		}
+		
+		if (Client.updateBDbyP1(query)) {
+			System.out.println("\nRecepta została zrealizowana.\n");
+		} else {
+			System.out.println("\nNastępił błąd!\n");
+		}
 		
 	}
 	
