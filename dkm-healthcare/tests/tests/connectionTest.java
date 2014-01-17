@@ -20,7 +20,7 @@ public class connectionTest {
 		P3protocol p3 = new P3protocol(Site.Notify, config);
 		ResultSet rs = p3.getInfo("select * from zabiegi");
 		Doctor dr = new Doctor("dupa");
-		dr.printResult(rs, 2);
+		//dr.printResult(rs, 2);
 	}
 	
 	@Test

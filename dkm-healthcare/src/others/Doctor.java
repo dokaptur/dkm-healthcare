@@ -81,6 +81,7 @@ public class Doctor {
 				break;
 			case 4:
 				System.out.println("Wprowadź w jednej linii nazwę leku i dawkowanie:");
+				//String lek = null;
 				sc.nextLine();
 				String lek =  sc.nextLine();
 				query = "insert into recepty (pesel, id_lekarz, lek) values('" + patient + "', '" + pesel + "', '" + lek + "');";
@@ -176,7 +177,7 @@ public class Doctor {
 					", w przeciwnym przypadku wprowadź 0\n");
 			int conf = sc.nextInt();
 			if (conf == 0) break;
-			if (Client.updateBDbyP1("update osoby_info set info = " + info + info2 + "where pesel = '" + patient + "';")) {
+			if (Client.updateBDbyP1("update osoby_info set info = " + info + ", " + info2 + "where pesel = '" + patient + "';")) {
 				System.out.println("\nInformacje zostały zmodyfikowane.\n");
 			} else {
 				System.out.println("\nNastąpił bład!\n");
