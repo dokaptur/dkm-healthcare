@@ -13,6 +13,7 @@ import javax.net.ssl.SSLSocketFactory;
 import com.sun.rowset.CachedRowSetImpl;
 
 import others.Config;
+import servers.BDServer;
 
 
 /**
@@ -87,13 +88,13 @@ public class P3protocol {
 	
 	/**
 	 * The most important method. Here is implemented whole communication.
-	 * @param socket, request, SQL query connection with Data Basis on DB Server
+	 * @param socket, request, SQL query, connection with Data Basis on DB Server
 	 * @return null if we are in DBServer or if error occurs. Otherwise Boolean while pinging and ResultSet while asking DB about some info.  
 	 *
 	 * @throws Exception
 	 */
 	
-	public Object talk(Socket socket, Request request, String query, Connection con) throws Exception {
+	public Object talk(Socket socket, Request request, String query, BDServer bd) throws Exception {
 		
 		InputStream is = socket.getInputStream();
 		OutputStream os = socket.getOutputStream();
@@ -130,16 +131,8 @@ public class P3protocol {
 					
 					// get CachedRowSetImpl object from DB
 					String sql = sc.readLine(); System.out.println(sql);
-					ResultSet result = null;
-					Statement stat = con.createStatement();
-					stat.execute("SET search_path TO 'dkm-healthcare'");
-					CachedRowSetImpl crs = new CachedRowSetImpl();
-					try {
-						result = stat.executeQuery(sql);
-					} catch (Exception e) {
-						result = null;
-					}
-					crs.populate(result);
+					
+					CachedRowSetImpl crs = bd.executeQuery(sql);
 					
 					wr.println("Port number for new connection?"); wr.flush();
 					String s = sc.readLine(); System.out.println(s);

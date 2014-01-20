@@ -1,5 +1,6 @@
 package servers;
 
+import java.io.IOException;
 import java.net.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,14 +8,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.net.ssl.SSLServerSocket;
+//import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
+//import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import com.sun.rowset.CachedRowSetImpl;
 
 import others.Config;
+import protocols.P1protocol;
 import servers.ServerSocketThread.ServerType;
 
 public class BDServer {
@@ -28,8 +30,6 @@ public class BDServer {
 	SSLServerSocketFactory sfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
 	
 	public CachedRowSetImpl executeQuery(String query){
-		
-		
 		ResultSet result = null;
 		try {
 		    Statement stat = conn.createStatement();
@@ -63,6 +63,10 @@ public class BDServer {
 		}
 	}
 	
+	public void executeLogin() throws IOException, SQLException{
+        P1protocol.logIn(null, P1protocol.Site.DB, conn, url, passwd);
+    }
+	
 	public BDServer() {
 		try {
 		    Class.forName("org.postgresql.Driver");
@@ -91,10 +95,11 @@ public class BDServer {
 		
 		
 		try {
+		@SuppressWarnings("resource")
 		ServerSocket server = new ServerSocket(bd.config.BD1addr.getPort());
 		while (true) {
 			Socket socket = server.accept();
-			ServerSocketThread thread = new ServerSocketThread(socket, ServerType.DB1, bd.config, bd.conn);
+			ServerSocketThread thread = new ServerSocketThread(socket, ServerType.DB1, bd.config, bd);
 			thread.run();
 			}
 		} catch (Exception e) {

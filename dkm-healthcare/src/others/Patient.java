@@ -15,15 +15,23 @@ public class Patient {
 	/**
 	 * pesel of client
 	 */
-	private String pesel;
-	private Scanner scan = new Scanner(System.in);
+	String pesel;
+	
+	/**
+	 * password of client
+	 */
+	String password;
+	
+	Scanner scan = new Scanner(System.in);
 
 	/**
 	 * constructor
 	 * @param pesel
+	 * @param password
 	 */
-	public Patient(String pesel) {
+	public Patient(String pesel, String password) {
 		this.pesel = pesel;
+		this.password = password;
 	}
 	
 	/**

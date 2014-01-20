@@ -20,11 +20,18 @@ public class Pharmacist {
 	String pesel;
 	
 	/**
+	 * password of Client
+	 */
+	String password;
+	
+	/**
 	 * constructor
 	 * @param pesel
+	 * @param password
 	 */
-	public Pharmacist (String pesel) {
+	public Pharmacist (String pesel, String password) {
 		this.pesel = pesel;
+		this.password = password;
 	}
 	/**
 	 * class to "realize" prescription. Sends query to DBServer asking to modify some data (using Client.getRSbyP1 method)

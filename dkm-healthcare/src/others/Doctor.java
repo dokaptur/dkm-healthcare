@@ -17,13 +17,19 @@ public class Doctor {
 	 * pesel of client
 	 */
 	String pesel;
+	/**
+	 * password of Client
+	 */
+	String password;
 	
 	/**
 	 * constructor
 	 * @param pesel
+	 * @param password
 	 */
-	public Doctor(String pesel) {
+	public Doctor(String pesel, String password) {
 		this.pesel = pesel;
+		this.password = password;
 	}
 	
 	/**

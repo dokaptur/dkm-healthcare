@@ -1,0 +1,31 @@
+Protokół P2 i synchronizacja baz danych
+ANALIZA I DOKUMENTACJA TECHNICZNA 
+
+Niektórzy użytkownicy (Doktor, Farmaceuta) mają możliwość wprowadzania zmian w bazie danych. Ponieważ mamy dwa serwery baz danych, a użytkownik łączy się tylko z jednym z nich, zmiany są widoczne tylko na tym serwerze, z którym połączył się użytkownik. Serwer baz danych, która została zmodyfikowana, próbuje wysłać tę samą modyfikację drugiemu serwerowi. Ale...
+
+Czasami zdarza się awaria serwera baz danych. Ponieważ mamy dwa serwery, nie stanowi to zbytniego problemu: użytkownik może łączyć się z tym drugim serwerem w celu otrzymania informacji. Ale co jeśli użytkownik chce wprowadzać zmiany w bazie danych? Gdy awaria pierwszego serwera zostanie usunięta, będzie dokładnie w tym samym stanie, w jakim był przed awarią. Ale przecież użytkownik modyfikował zawartość bazy danych! W tej sytuacji trzeba synchronizować zawartość serwerów. Gdy serwer baz danych nie może wysłać modyfikacji do tego drugiego serwera, zapisuje sobie zapytania SQLa w pliku tekstowym (./log). Gdy serwer powróci po awarii, dostanie od sprawnego serwera tenże plik.
+
+Protokół ten ma nastepujące własności:
+
+1. ASYMETRIA
+Zarówno pierwszy, jak i drugi serwer może ulec awarii. W funkcji "talk" protokołu udział biorą dwie strony: serwer, który 
+rozpoczyna synchronizację (DBInit) oraz "ten drugi" (DBRec). Reprezentuje je enumerator Site.
+
+2. TCP
+Protokół P2 oparty jest na protokole TCP w warstwie sieci.
+
+3. SOCKETY I STRUMIENIE DANYCH
+Komunikacja w protokole P2 opiera się na przesyłaniu strumieni danych do Socketa. 
+
+4. STANOWOŚĆ
+Protokół P2 jest protokołem stanowym. Jest to wygodne, gdyż rozmowy są stosunkowo krótkie i nie kosztuje nas wiele pamiętanie w jakim momencie rozmowy jesteśmy. Bardziej obciążające byłby wysyłanie za każdym razem wiekszej ilości informacji. Dlatego też powstała klasa ServerSocketThread, która każdą rozmowę otwiera w osobnym wątku. Jest to też o tyle wygodne, gdyż nie chcemy podawać informacji z bazy danych byle komu. Ale o tym w następnym podpunkcie.
+
+5. POUFNOŚĆ
+Stosujemy bezpieczne gniazka SSL.
+
+6. DOSTĘPNOŚĆ i INTEGRALNOŚĆ
+Zapewnia je właśnie protokół P2.
+
+7. SKALOWALNOŚĆ
+Dla wygody adresy serwerów baz danych są także zahardcodowane w klasie protokołu P2. 
+Na potrzeby skalowalności są jednak w liście i można łatwo podmienić, aby lista ta była wypełniana z jakiegoś pliku konfiguracyjnego.

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 import others.*;
+//import protocols.P1protocol;
 
 /**
  * Main class for Client.
@@ -106,6 +107,18 @@ public class Client {
 		System.out.println("Wprowadź hasło:");
 		String password = sc.next();
 		//log in with p1 protocol
+		/*boolean success=false;
+        while(success!=true){
+            BDServer bd = new BDServer();
+            try {
+            bd.executeLogin();
+            P1protocol.logIn(null, P1protocol.Site.User, null, pesel, password);
+            } catch (Exception e) {
+            	
+            }
+            System.out.println("Niepoprawne haslo, wprowadz jeszcze raz");
+            password=sc.next();
+        };*/
 		
 		String askIfDoctor = "select prawa from lekarze where id_lekarz = '" + pesel +"';";
 		ResultSet rs = getRSbyP1(askIfDoctor);
@@ -141,17 +154,18 @@ public class Client {
 			System.out.println("Aby zmienić hasło, wprowadź 4");
 			System.out.println("Aby zakończyć program, wprowadź 0");
 			
+			sc = new Scanner(System.in);
 			int i = sc.nextInt();
 			switch(i) {
 			case 1:
-				new Patient(pesel).perform();
+				new Patient(pesel, password).perform();
 				break;
 			case 2:
-				Doctor doctor = new Doctor(pesel);
+				Doctor doctor = new Doctor(pesel, password);
 				doctor.perform();
 				break;
 			case 3:
-				Pharmacist pharm = new Pharmacist(pesel);
+				Pharmacist pharm = new Pharmacist(pesel, password);
 				pharm.perform();
 				break;
 			case 4:

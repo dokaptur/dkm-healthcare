@@ -2,7 +2,6 @@ package servers;
 
 import java.io.*;
 import java.net.*;
-import java.sql.*;
 
 import others.Config;
 import protocols.P3protocol;
@@ -34,9 +33,9 @@ public class ServerSocketThread implements Runnable {
 	Socket socket;
 	
 	/**
-	 * connection with Data Basis. Not null only for DBServers. 
+	 * an instance of DBServer. 
 	 */
-	Connection con;
+	BDServer bd;
 	
 	/**
 	 * type of server
@@ -67,13 +66,13 @@ public class ServerSocketThread implements Runnable {
 	 * @param socket (socket already connected)
 	 * @param type (type of server)
 	 * @param config
-	 * @param con (connection with Data Base)
+	 * @param dbServer
 	 */
-	public ServerSocketThread(Socket socket, ServerType type, Config config, Connection con) {
+	public ServerSocketThread(Socket socket, ServerType type, Config config, BDServer bd) {
 		this.config = config;
 		this.type = type;
 		this.socket = socket;
-		this.con = con;
+		this.bd = bd;
 	}
 	
 	/**
@@ -94,7 +93,7 @@ public class ServerSocketThread implements Runnable {
 			
 			if (s.equals("P3")) {
 				P3protocol protocol = new P3protocol(Site.DB, config);
-				protocol.talk(socket, null, null, con);
+				protocol.talk(socket, null, null, bd);
 			} 
 			else if (s.equals("P1")) {
 				

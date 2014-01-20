@@ -1,0 +1,30 @@
+Protokół P1 i komunikacja Serwera Bazy Danych (DBServer) i Użytkownika (User)
+ANALIZA I DOKUMENTACJA TECHNICZNA 
+
+Protokół P1 stanowi główną część aplikacji. To przez niego porozumiewają się użytkownik z serwerem bazy danych. 
+Protokół pozwala na pięć akcji - logowanie, wykonanie zapytania w bazie danych i zwrócenie wyniku, ściągnięcie własnej historii choroby oraz wysłanie na serwer pliku.
+Żeby logowanie było bezpieczne, wykorzystujemy schemat Lamporta: baza danych przechowuje dla każdego klienta numer iteracji hasła i odpowiednie złożenie funckji md5 na haśle. W chwili, gdy użytkownik chce się zalogować, baza danych wysyła mu numer iteracji - n. Użytkownik liczy u siebie złożenie (n-1) funckji md5 na haśle i odsyła serwerowi. Serwer bazy danych obkłada to jeszcze raz funcją md5 i porównuje z przechowywaną w bazie iteracją hasła. Jeżeli się zgadzają, serwer bazy danych updatuje w bazie n na wartość o jeden mniejszą i poprzednią iteracją hasła.
+
+Protokół P1 ma nastepujące własności:
+
+1. ASYMETRIA
+Jedynym słusznym rozwiązaniem jest przyjęcie, że rozmowę zawsze rozpoczyna użytkownik. Dlatego protokół P1 ma własny enumerator Site, który mówi, czy jesteśmy uzytkownikiem, czy serwerem bazy danych. Funkcja talk służy do komunikacji i obsługuje zapytanie do bazy danych, wysyłanie i pobieranie plików. Do rozróżniania zapytań służy enumerator Request.
+
+2. TCP
+Protokół P1 oparty jest na protokole TCP w warstwie sieci.
+
+3. SOCKETY I STRUMIENIE DANYCH
+Komunikacja w protokole P1 opiera się na przesyłaniu strumieni danych do Socketa. 
+
+4. STANOWOŚĆ
+Protokół P1 jest protokołem stanowym. Jest to wygodne, gdyż rozmowy są stosunkowo krótkie i nie kosztuje nas wiele pamiętanie w jakim momencie rozmowy jesteśmy. Bardziej obciążające byłby wysyłanie za każdym razem wiekszej ilości informacji. Dlatego też powstała klasa ServerSocketThread, która każdą rozmowę otwiera w osobnym wątku. Jest to też o tyle wygodne, gdyż nie chcemy podawać informacji z bazy danych byle komu. Ale o tym w następnym podpunkcie.
+
+5. POUFNOŚĆ
+Protokół P1 po stronie użytkownika sprawdza, czy odpowiada mu serwer bazy danych. Serwerów powiadomień nie jest wiele, stąd też w protokole są zahardkodowane adresy IP baz danych. Ponadto przy logowaniu stosujemy opisany wcześniej schemat Lamporta.
+
+6. DOSTĘPNOŚĆ i INTEGRALNOŚĆ
+Może się zdarzyć, że serwer bazy danych ulegnie awarii. Nie chcemy, żeby wtedy użytkownicy stracili możliwość sprawdzenia np. kiedy mają zabieg! Właśnie dlatego mamy dwa serwery bazy danych, z którymi użytkownik może sie połączyć. Synchronizacją pomiędzy bazami danych zajmuje się protokół P2. Do przesyłania danych pomiędzy bazą danych a użytkownikiem uzywamy bezpiecznych SSLSocketów.
+
+7. SKALOWALNOŚĆ
+Dla wygody adresy serwerów baz danych są także zahardcodowane w klasie protokołu P1. 
+Na potrzeby skalowalności są jednak w liście i można łatwo podmienić, aby lista ta była wypełniana z jakiegoś pliku konfiguracyjnego.
