@@ -71,7 +71,7 @@ update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pese
 
 --OSOBY_ALERGIE
 insert into "dkm-healthcare".osoby_alergie values ('64050701526', 'brzydkie_dowody');
-insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'szczypka');
+insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'kąpiel');
 insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'slonce');
 insert into "dkm-healthcare".osoby_alergie values ('05270102489', 'anglicy');
 
