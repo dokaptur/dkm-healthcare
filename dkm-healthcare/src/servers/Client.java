@@ -1,8 +1,13 @@
 package servers;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Scanner;
 
 import others.*;
@@ -16,16 +21,42 @@ import others.*;
 
 public class Client {
 	
+	Config config = new Config();
+	String url = "jdbc:postgresql:dkm";
+	String user = "dudu";
+	String passwd = "ciap2000";
+	Connection conn; 
+	
+	public Client() {
+		try {
+		    Class.forName("org.postgresql.Driver");
+		    
+		    conn = DriverManager.getConnection(url, user, passwd);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Method to get ResultSet from DBServers using P1 protocol.
 	 * @param query
 	 * @return ResultSet
 	 */
 	
-	public static ResultSet getRSbyP1(String query) {
-		BDServer bd = new BDServer();
-		ResultSet rs = (ResultSet) bd.executeQuery(query);
-		return rs;
+	public ResultSet getRSbyP1(String query) {
+		ResultSet result = null;
+		try {
+		    Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		    stat.execute("SET search_path TO 'dkm-healthcare'");
+		    result = stat.executeQuery(query);
+		} catch (SQLException sqle) {
+		       System.out.println("Could not connect");
+		       sqle.printStackTrace();
+		       System.exit(1);
+		} 
+		return result;
 	}
 	
 	/**
@@ -33,9 +64,16 @@ public class Client {
 	 * Uses P1protocol as well 
 	 * @param query
 	 */
-	public static boolean updateBDbyP1(String query) {
-		BDServer bd = new BDServer();
-		bd.executeUpdate(query);
+	public boolean updateBDbyP1(String query) {
+		try {
+		    Statement stat = conn.createStatement();
+		    stat.execute("SET search_path TO 'dkm-healthcare'");
+		    stat.executeUpdate(query);
+		} catch (SQLException sqle) {
+		       System.out.println("Could not connect");
+		       sqle.printStackTrace();
+		       System.exit(1);
+		}
 		return true;
 	}
 	
@@ -46,7 +84,7 @@ public class Client {
 	 * @param scaner
 	 */
 	public static void printResult(ResultSet result, boolean continuee, Scanner scan) {
-		String cmd;
+		int cmd;
 		try {
 			ResultSetMetaData metaData = result.getMetaData();
 		    int cc = metaData.getColumnCount();
@@ -69,23 +107,75 @@ public class Client {
 			}
 		}
 		if (!continuee) {
-			System.out.println("aby powrocic do menu wpisz menu, aby zakonczyc wpisz exit");
+			System.out.println("aby powrocic do menu wciśnij 1, aby zakonczyc program wciśnij 0");
 			do {
-				if ( (cmd=scan.nextLine()).equals("exit") ) System.exit(1);
-				else if (cmd.equals("menu")) return;
+				if ((cmd=scan.nextInt()) == 0) System.exit(1);
+				else if (cmd == 1) return;
 				else continue;
 			} while (true);
 		}
 	}
-
+	
+	private String md5Hash(String s) {
+		String result = null;
+		MessageDigest md5;
+		try {
+			md5 = MessageDigest.getInstance("MD5");
+			md5.update(s.getBytes());
+			byte[] md5sum = md5.digest();
+			BigInteger bigInt = new BigInteger(1, md5sum);
+			result = bigInt.toString(16);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
 	
 	
 	/**
 	 * method to change password.
-	 * Static, because it is called from other static methods.
 	 */
-	private static void changePassword() {
-		//TODO
+	public void changePassword(String pesel, Scanner sc) {
+		do {
+			String h1, h2;
+			System.out.println("Wprowadź nowe hasło:");
+			h1 = sc.next();
+			System.out.println("Powtórz nowe hasło:");
+			h2 = sc.next();
+			if (!h1.equals(h2)) {
+				System.out.println("Wprowadzone hasła są inne! Spróbuj jeszcze raz!");
+			} else {
+				this.updateBDbyP1("update osoby set haslo = '" + md5Hash(h1) + "' where pesel = '" + pesel + "';");
+				System.out.println("Hasło zostało zmienione.");
+				break;
+			}
+		} while (true);
+	}
+	
+	public boolean checkpasswd(String pesel, String password) {
+		
+		String passwdmd5;
+		String passwdok;
+		try {
+			passwdmd5 = md5Hash(password);
+			System.out.println(passwdmd5);
+			
+			ResultSet rs = this.getRSbyP1("select haslo from osoby where pesel = '" + pesel + "';");
+			rs.next();
+			passwdok = rs.getString(1);
+			System.out.println(passwdok);
+			
+			if (passwdmd5.equals(passwdok)) return true;
+			else {
+				System.out.println("\nNieprawidłowy pesel lub hasło! Spróbuj jeszcze raz!\n");
+				return false;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	/**
@@ -96,50 +186,39 @@ public class Client {
 	
 	public static void main(String[] args) {
 		
-		
+		Client client = new Client();
 		boolean isDoctor = false;
 		boolean isPharm = false;
-		
-		
-		System.out.println("Wpisz swoj pesel:");
 		Scanner sc = new Scanner(System.in);
-		String pesel = sc.next();
-		System.out.println("Wprowadź hasło:");
-		String password = sc.next();
-		//log in with p1 protocol
-		/*boolean success=false;
-        while(success!=true){
-            BDServer bd = new BDServer();
-            try {
-            bd.executeLogin();
-            P1protocol.logIn(null, P1protocol.Site.User, null, pesel, password);
-            } catch (Exception e) {
-            	
-            }
-            System.out.println("Niepoprawne haslo, wprowadz jeszcze raz");
-            password=sc.next();
-        };*/
+		String pesel;
+		
+		do {
+			
+			System.out.println("Wpisz swoj pesel:");
+			pesel = sc.next();
+			System.out.println("Wprowadź hasło:");
+			String password = sc.next();
+			
+			if (client.checkpasswd(pesel, password)) break;
+		} while (true);
+		
+		
 		
 		String askIfDoctor = "select prawa from lekarze where id_lekarz = '" + pesel +"';";
-		ResultSet rs = getRSbyP1(askIfDoctor);
-		
-		
+		ResultSet rs = client.getRSbyP1(askIfDoctor);
 		try {
 			if (rs.next() && rs.getBoolean(1)) {
-				
 				isDoctor = true;
-				
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
 		String askIfPharmacist = "select aptekarz from osoby where pesel = '" + pesel + "';";
-		rs = getRSbyP1(askIfPharmacist);
+		rs = client.getRSbyP1(askIfPharmacist);
 		
 		try {
 			if (rs.first() && rs.getBoolean(1)) {
-				System.out.println("isPharm");
 				isPharm = true;
 			}
 		} catch (SQLException e) {
@@ -158,18 +237,18 @@ public class Client {
 			int i = sc.nextInt();
 			switch(i) {
 			case 1:
-				new Patient(pesel, password).perform();
+				new Patient(pesel, client).perform();
 				break;
 			case 2:
-				Doctor doctor = new Doctor(pesel, password);
+				Doctor doctor = new Doctor(pesel, client);
 				doctor.perform();
 				break;
 			case 3:
-				Pharmacist pharm = new Pharmacist(pesel, password);
+				Pharmacist pharm = new Pharmacist(pesel, client);
 				pharm.perform();
 				break;
 			case 4:
-				changePassword();
+				client.changePassword(pesel, sc);
 				break;
 			case 0:
 				System.out.println("Do zobaczenia!\n");

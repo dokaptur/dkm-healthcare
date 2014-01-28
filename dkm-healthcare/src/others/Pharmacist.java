@@ -19,19 +19,16 @@ public class Pharmacist {
 	
 	String pesel;
 	
-	/**
-	 * password of Client
-	 */
-	String password;
+	Client client;
 	
 	/**
 	 * constructor
 	 * @param pesel
-	 * @param password
+	 * @param client
 	 */
-	public Pharmacist (String pesel, String password) {
+	public Pharmacist (String pesel, Client client) {
 		this.pesel = pesel;
-		this.password = password;
+		this.client = client;
 	}
 	/**
 	 * class to "realize" prescription. Sends query to DBServer asking to modify some data (using Client.getRSbyP1 method)
@@ -42,7 +39,7 @@ public class Pharmacist {
 		String nr = sc.next();
 		String query = "update recepty set zrealizowana = true, zrealizowana_przez = '" + pesel + 
 				"' where numer = " + nr + ";";
-		ResultSet rs = Client.getRSbyP1("select zrealizowana from recepty where numer = " + nr + ";");
+		ResultSet rs = client.getRSbyP1("select zrealizowana from recepty where numer = " + nr + ";");
 		
 		try {
 			if (rs.next() && rs.getBoolean(1)) {
@@ -54,7 +51,7 @@ public class Pharmacist {
 			System.out.println("\nNastąpił błąd!\n");
 		}
 		
-		if (Client.updateBDbyP1(query)) {
+		if (client.updateBDbyP1(query)) {
 			System.out.println("\nRecepta została zrealizowana.\n");
 		} else {
 			System.out.println("\nNastępił błąd!\n");

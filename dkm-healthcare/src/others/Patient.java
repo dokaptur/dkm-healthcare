@@ -16,22 +16,18 @@ public class Patient {
 	 * pesel of client
 	 */
 	String pesel;
-	
-	/**
-	 * password of client
-	 */
-	String password;
+	Client client;
 	
 	Scanner scan = new Scanner(System.in);
 
 	/**
 	 * constructor
 	 * @param pesel
-	 * @param password
+	 * @param client
 	 */
-	public Patient(String pesel, String password) {
+	public Patient(String pesel, Client client) {
 		this.pesel = pesel;
-		this.password = password;
+		this.client = client;
 	}
 	
 	/**
@@ -42,12 +38,12 @@ public class Patient {
 		while(true){
 			System.out.println( "W czym moge sluzyc?\n"+
 					"Aby sciagnac historie choroby wcisnij 1;\n"+
-					"Aby wyswietlic informacje o tobie wcisnij 2;\n"+
+					"Aby wyswietlic informacje o sobie wcisnij 2;\n"+
 					"Aby wyswietlic recepty wcisnij 3;\n"+
 					"Aby wyswietlic skierowania wcisnij 4;\n"+
 					"Aby znalezc informacje o wykonywanych zabiegach wcisnij 5;\n"+
-					"Aby znalezc informacje o specjalistach wcisniej 6;\n"+
-					"Aby wyswietlic informacje o twoim lekarzu rodzinnym wcisniej 7;\n"+
+					"Aby znalezc informacje o specjalistach wcisnij 6;\n"+
+					"Aby wyswietlic informacje o swoim lekarzu rodzinnym wcisniej 7;\n"+
 					"Aby zakonczyc wcisnij 0."
 					);
 			switch(scan.nextInt()){
@@ -124,30 +120,29 @@ public class Patient {
 		System.out.println("\nInformacje podstawowe");
 		System.out.println("imie, nazwisko, pesel, data_urodzenia, adres");
 		String query="SELECT imie, nazwisko, pesel, data_urodzenia, adres FROM osoby WHERE pesel='"+pesel+"';";
-		Client.printResult(Client.getRSbyP1(query), true, scan);
+		Client.printResult(client.getRSbyP1(query), true, scan);
 
 		//informacje z tabeli osoby_info
-		System.out.println("\nInformacje dodatkowe");
+		System.out.println("\nInformacje, aktualne");
 		System.out.println("imie, nazwisko, info, historia modyfikacja");
-		query="SELECT imie, nazwisko, info, historia_modyfikacja FROM "+
-			  "osoby o JOIN osoby_info oi ON lekarz_rodzinny=o.pesel  WHERE oi.pesel='"+pesel+"';";
-		Client.printResult(Client.getRSbyP1(query), true, scan);
+		query="SELECT info, aktualne FROM osoby_info  WHERE pesel='"+pesel+"';";
+		Client.printResult(client.getRSbyP1(query), true, scan); 
 
 		//informacje o alergiach
-		System.out.println("\nAlergie");
-		query="SELECT alergia FROM osoby_alergie WHERE pesel='"+pesel+"';";
-		Client.printResult(Client.getRSbyP1(query), true, scan);
+		System.out.println("\nalergia, aktualne");
+		query="SELECT alergia, aktualne FROM osoby_alergie WHERE pesel='"+pesel+"';";
+		Client.printResult(client.getRSbyP1(query), true, scan);
 
 		//informacje o lekach
-		System.out.println("\nLeki");
-		query="SELECT lek FROM osoby_leki WHERE pesel='"+pesel+"';";
-		Client.printResult(Client.getRSbyP1(query), true, scan);
+		System.out.println("\nlek, przyjmowany od, przyjmowany do");
+		query="SELECT lek, od, do FROM osoby_leki WHERE pesel='"+pesel+"';";
+		Client.printResult(client.getRSbyP1(query), true, scan);
 
 		//informacje o specjalistach
 		System.out.println("\nInformacje o specjalistach");
 		System.out.println("imie, nazwisko");
 		query="SELECT s.imie, s.nazwisko FROM osoby o NATURAL JOIN pacjenci_specjalisci join osoby s on id_lekarz=s.pesel WHERE o.pesel='"+pesel+"';";
-		Client.printResult(Client.getRSbyP1(query), true, scan);
+		Client.printResult(client.getRSbyP1(query), false, scan);
 
 	}
 
@@ -158,7 +153,7 @@ public class Patient {
 		System.out.println("\nnumer, lek, data_waznosci, zrealizowana");
 		String query="SELECT numer, lek, data_waznosci, zrealizowana FROM recepty "+
 					 "WHERE pesel='"+pesel+"' ORDER BY 4 DESC;";
-		Client.printResult(Client.getRSbyP1(query), false, scan);
+		Client.printResult(client.getRSbyP1(query), false, scan);
 	}
 	
 	/**
@@ -168,7 +163,7 @@ public class Patient {
 		System.out.println("\nnumer, nazwa, zrealizowany");
 		String query="SELECT numer, nazwa, zrealizowany FROM skierowania NATURAL LEFT JOIN zabiegi "+
 					 "WHERE pesel='"+pesel+"' ORDER BY 3 DESC, 1;";
-		Client.printResult(Client.getRSbyP1(query), false, scan);
+		Client.printResult(client.getRSbyP1(query), false, scan);
 	}
 
 	/**
@@ -190,7 +185,7 @@ public class Patient {
 		} while(true);		query="SELECT p.nazwa, typ, adres, nr_tel FROM placowki p NATURAL JOIN placowki_zabiegi "+
 					 "JOIN zabiegi z using (id_zabieg) WHERE miasto='"+miasto+"' AND z.nazwa='"+zabieg+"';";
 		System.out.println("\nnazwa, typ, adres, nr_tel");
-		Client.printResult(Client.getRSbyP1(query), false, scan);
+		Client.printResult(client.getRSbyP1(query), false, scan);
 	}
 
 	/**
@@ -212,7 +207,7 @@ public class Patient {
 					 "NATURAL JOIN lekarze_specjalizacje JOIN specjalizacje s using (id_spec) WHERE miasto='"+miasto+
 					 "' AND s.nazwa='"+specjalista+"';";
 		System.out.println("\nnazwa, typ, adres, nr_tel");
-		Client.printResult(Client.getRSbyP1(query), false, scan);
+		Client.printResult(client.getRSbyP1(query), false, scan);
 	}
 
 	/**
@@ -220,12 +215,12 @@ public class Patient {
 	 */
 	private void familyDoc() {
 		String query="SELECT imie, nazwisko, nazwa, p.adres, nr_tel "+
-					 "FROM osoby_info oi JOIN lekarze_placowki on lekarz_rodzinny=id_lekarz NATURAL JOIN placowki p "+
+					 "FROM osoby oi JOIN lekarze_placowki on lekarz_rodzinny=id_lekarz NATURAL JOIN placowki p "+
 					 "JOIN osoby ol ON id_lekarz=ol.pesel "+
 					 "WHERE oi.pesel='"+pesel+"' AND typ='przychodnia'";
 
 		System.out.println("imie, nazwisko, nazwa, adres, nr_tel");
-		Client.printResult(Client.getRSbyP1(query), false, scan);
+		Client.printResult(client.getRSbyP1(query), false, scan);
 	}
 
 	
