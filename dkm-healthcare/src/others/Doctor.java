@@ -1,8 +1,13 @@
 package others;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
+
 import servers.Client;
 
 /**
@@ -79,8 +84,10 @@ public class Doctor {
 			switch(n) {
 			case 1:
 				patientInfo(patient);
+				break;
 			case 2:
 				patientPharm(patient);
+				break;
 			case 3:
 				patientAllergy(patient);
 				break;
@@ -190,12 +197,12 @@ public class Doctor {
 		int n = sc.nextInt();
 		switch (n) {
 		case 1 :
-			query = "select id, lek, od, do from osoby_leki where pesel = '" + patient + "';";
+			query = "select id, lek, od, \"do\" from osoby_leki where pesel = '" + patient + "';";
 			System.out.println("\nID, lek, od, do\n");
 			Client.printResult(client.getRSbyP1(query), false, sc);
 			break;
 		case 2 :
-			query = "select id, lek, od from osoby_leki where pesel = '" + patient +"' and do IS NULL;";
+			query = "select id, lek, od from osoby_leki where pesel = '" + patient +"' and \"do\" IS NULL;";
 			System.out.println("\nID, lek, od\n");
 			Client.printResult(client.getRSbyP1(query), false, sc);
 			break;
@@ -214,7 +221,7 @@ public class Doctor {
 			int id = sc.nextInt();
 			System.out.println("Wprowadź datę \"do\" w formacie YYYY-MM-DD:");
 			String date = sc.next();
-			if (client.updateBDbyP1("update osoby_leki set do = '" + date + "' where id = " + id + " and pesel = '" + patient + "';")) {
+			if (client.updateBDbyP1("update osoby_leki set \"do\" = '" + date + "' where id = " + id + " and pesel = '" + patient + "';")) {
 				System.out.println("\nData została zmodyfikowana\n");
 			} else {
 				System.out.println("\nNastąpił bład!\n");
@@ -277,19 +284,49 @@ public class Doctor {
 		System.out.println("Aby dodać pliki do historii choroby pacjenta, wprowadź 2");
 		System.out.println("Jeśli chcesz wrócić, wprowadź 0\n");
 		int n = sc.nextInt();
-		//String path = null;
+		String path;
+		
 		switch (n) {
 		case 1:
 			System.out.println("Wprowadź ścieżkę do folderu, do którego chcesz ściągnąć folder z historią choroby:");
-			// path = sc.next();
-			// do something
+			path = sc.next(".*[a-zA-Z1-9\\/]*");
+			String query = "select * from osoby_historia where pesel = '" + patient + "';";
+			ResultSet rs = client.getRSbyP1(query);
+			try {
+				while (rs.next()) {
+					String filename = rs.getString("nazwa");
+					FileOutputStream fos = new FileOutputStream(path + filename);
+					fos.write(rs.getBytes("plik"));
+					fos.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println("\nHistoria choroby pacjenta dostępna pod adresem " + path + "\n");
 			break;
 		case 2 :
 			System.out.println("Wprowadź ścieżkę do pliku, który chcesz dodać do historii choroby pacjenta:");
-			// path = sc.next();
-			// do something
+			path = sc.next(".*[a-zA-Z1-9\\/]*");
+			File file = new File(path);
+			FileInputStream fis;
+			try {
+				fis = new FileInputStream(file);
+				PreparedStatement ps = client.conn.prepareStatement("INSERT INTO osoby_historia(pesel, plik, nazwa) VALUES (?, ?, ?)");
+				ps.setString(1, patient);
+				ps.setString(3, file.getName());
+				ps.setBinaryStream(2, fis, (int)file.length());
+				ps.executeUpdate();
+				ps.close();
+				fis.close();
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			} 
+			String queryy = "update osoby set historia_modyfikacja = current_date where pesel = '" + patient + "';";
+			client.updateBDbyP1(queryy);
+			System.out.println("\nPlik został załadowany\n");
 			break;
-		case 3 :
+		case 0 :
 			return;
 		}
 	}
@@ -337,7 +374,7 @@ public class Doctor {
 		case 1:
 			String query = "select * from zabiegi;";
 			System.out.println("\nid, nazwa\n");
-			Client.printResult(client.getRSbyP1(query), false, sc);
+			Client.printResult(client.getRSbyP1(query), true, sc);
 			break;
 		case 2:
 			break;
@@ -479,7 +516,7 @@ public class Doctor {
 				break;
 			case 0:
 				System.out.println("Dziękujemy za pracę w trybie lekarza!\n");
-				sc.close();
+				//sc.close();
 				return;
 				
 			default:

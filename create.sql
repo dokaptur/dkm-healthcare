@@ -74,7 +74,7 @@ CREATE TABLE "dkm-healthcare".osoby_info (
 	pesel                char(11)  NOT NULL,
 	info                 text  ,
 	aktualne             bool,
-	CONSTRAINT pk_osoby_info PRIMARY KEY ( pesel, info ),
+	CONSTRAINT pk_osoby_info PRIMARY KEY ( id ),
 	CONSTRAINT fk_osoby_info FOREIGN KEY ( pesel ) REFERENCES "dkm-healthcare".osoby( pesel ) ON DELETE CASCADE ON UPDATE CASCADE
  );
  
@@ -83,7 +83,7 @@ CREATE TABLE "dkm-healthcare".osoby_info (
 	pesel                char(11)  NOT NULL,
 	alergia              text  ,
 	aktualne             bool NOT NULL,
-	CONSTRAINT pk_osoby_alergie PRIMARY KEY ( pesel, alergia ),
+	CONSTRAINT pk_osoby_alergie PRIMARY KEY ( id ),
 	CONSTRAINT fk_osoby_alergie FOREIGN KEY ( pesel ) REFERENCES "dkm-healthcare".osoby( pesel ) ON DELETE CASCADE ON UPDATE CASCADE
  );
  
@@ -92,19 +92,19 @@ CREATE TABLE "dkm-healthcare".osoby_info (
 	pesel                char(11)  NOT NULL,
 	lek                  text  ,
 	od                   date NOT NULL DEFAULT current_date,
-	"do"                 date NOT NULL,
-	CONSTRAINT pk_osoby_leki PRIMARY KEY ( pesel, lek ),
+	"do"                 date, --NOT NULL
+	CONSTRAINT pk_osoby_leki PRIMARY KEY ( id ),
 	CONSTRAINT fk_osoby_leki FOREIGN KEY ( pesel ) REFERENCES "dkm-healthcare".osoby( pesel ) ON DELETE CASCADE ON UPDATE CASCADE
  );
  
- ALTER TABLE "dkm-healthcare".osoby_leki ADD CONSTRAINT ck_1 CHECK ( od < "do" );
+ --ALTER TABLE "dkm-healthcare".osoby_leki ADD CONSTRAINT ck_1 CHECK ( od < "do" );
 
  CREATE TABLE "dkm-healthcare".osoby_historia ( 
         id                   int DEFAULT nextval('"dkm-healthcare".seq_id_osoby_historia'),
 	pesel                char(11)  NOT NULL,
 	plik                 bytea,
 	nazwa                varchar(200),
-	CONSTRAINT pk_osoby_historia PRIMARY KEY ( pesel ),
+	CONSTRAINT pk_osoby_historia PRIMARY KEY ( id ),
 	CONSTRAINT fk_osoby_leki FOREIGN KEY ( pesel ) REFERENCES "dkm-healthcare".osoby( pesel ) ON DELETE CASCADE ON UPDATE CASCADE
  );
 
@@ -161,7 +161,7 @@ CREATE TABLE "dkm-healthcare".skierowania (
 	id_zabieg            integer  NOT NULL,
 	zrealizowany         bool DEFAULT 'false' NOT NULL,
 	od                   date NOT NULL DEFAULT current_date,
-	"do"                 date NOT NULL,	
+	"do"                 date NOT NULL DEFAULT current_date + interval '3 month',	
 	CONSTRAINT pk_skierowania PRIMARY KEY ( numer ),
 	CONSTRAINT fk_skierowania_1 FOREIGN KEY ( id_zabieg ) REFERENCES "dkm-healthcare".zabiegi( id_zabieg ) ON DELETE CASCADE ON UPDATE CASCADE,
 	CONSTRAINT fk_skierowania FOREIGN KEY ( pesel ) REFERENCES "dkm-healthcare".osoby( pesel ) ON DELETE CASCADE ON UPDATE CASCADE,

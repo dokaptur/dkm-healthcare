@@ -25,7 +25,7 @@ public class Client {
 	String url = "jdbc:postgresql:dkm";
 	String user = "dudu";
 	String passwd = "ciap2000";
-	Connection conn; 
+	public Connection conn; 
 	
 	public Client() {
 		try {
@@ -159,12 +159,12 @@ public class Client {
 		String passwdok;
 		try {
 			passwdmd5 = md5Hash(password);
-			System.out.println(passwdmd5);
+			//System.out.println(passwdmd5);
 			
 			ResultSet rs = this.getRSbyP1("select haslo from osoby where pesel = '" + pesel + "';");
 			rs.next();
 			passwdok = rs.getString(1);
-			System.out.println(passwdok);
+			//System.out.println(passwdok);
 			
 			if (passwdmd5.equals(passwdok)) return true;
 			else {

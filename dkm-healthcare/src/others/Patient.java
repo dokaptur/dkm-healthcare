@@ -1,6 +1,8 @@
 package others;
 
 
+import java.io.FileOutputStream;
+import java.sql.ResultSet;
 import java.util.Scanner;
 
 import servers.Client;
@@ -101,8 +103,9 @@ public class Patient {
 	 * It downloads patient's history to path specified by user.
 	 */
 	private void disease() {
-		System.out.println("\nPodaj sciezke do zapisu pliku\n");
-		String path=scan.next(".*[a-zA-Z\\/]*");
+		System.out.println("\nPodaj bezwzględną ścieżkę do folderu na historie choroby:\n");
+		String path=scan.next(".*[a-zA-Z1-9\\/]*");
+		//System.out.println(path);
 		download(path);
 	}
 	
@@ -110,7 +113,21 @@ public class Patient {
 	 * Manages downloading.
 	 * @param path
 	 */
-	private void download(String path){}
+	private void download(String path){
+		String query = "select * from osoby_historia where pesel = '" + pesel + "';";
+		ResultSet rs = client.getRSbyP1(query);
+		try {
+			while (rs.next()) {
+				String filename = rs.getString("nazwa");
+				FileOutputStream fos = new FileOutputStream(path + filename);
+				fos.write(rs.getBytes("plik"));
+				fos.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("\nHistoria choroby dostępna pod adresem " + path + "\n");
+	}
 
 	/**
 	 * It shows all information about user, including basic info, drugs, referrals etc
@@ -123,9 +140,9 @@ public class Patient {
 		Client.printResult(client.getRSbyP1(query), true, scan);
 
 		//informacje z tabeli osoby_info
-		System.out.println("\nInformacje, aktualne");
-		System.out.println("imie, nazwisko, info, historia modyfikacja");
-		query="SELECT info, aktualne FROM osoby_info  WHERE pesel='"+pesel+"';";
+		System.out.println("\nInformacje zdrowotne");
+		System.out.println("info, aktualne, modyfikacja historii");
+		query="SELECT info, aktualne, historia_modyfikacja FROM osoby_info join osoby using(pesel) WHERE pesel='"+pesel+"';";
 		Client.printResult(client.getRSbyP1(query), true, scan); 
 
 		//informacje o alergiach
@@ -135,7 +152,7 @@ public class Patient {
 
 		//informacje o lekach
 		System.out.println("\nlek, przyjmowany od, przyjmowany do");
-		query="SELECT lek, od, do FROM osoby_leki WHERE pesel='"+pesel+"';";
+		query="SELECT lek, od, \"do\" FROM osoby_leki WHERE pesel='"+pesel+"';";
 		Client.printResult(client.getRSbyP1(query), true, scan);
 
 		//informacje o specjalistach
@@ -214,7 +231,7 @@ public class Patient {
 	 * It displays info about user's family doc.
 	 */
 	private void familyDoc() {
-		String query="SELECT imie, nazwisko, nazwa, p.adres, nr_tel "+
+		String query="SELECT ol.imie, ol.nazwisko, nazwa, p.adres, nr_tel "+
 					 "FROM osoby oi JOIN lekarze_placowki on lekarz_rodzinny=id_lekarz NATURAL JOIN placowki p "+
 					 "JOIN osoby ol ON id_lekarz=ol.pesel "+
 					 "WHERE oi.pesel='"+pesel+"' AND typ='przychodnia'";
