@@ -1,16 +1,26 @@
 --OSOBY
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('64050701526',md5('rozniczka'),'michal','swietek',date'1988-05-15','gutenberga 4, krakow', false, 'michal.swietek@uj.edu.pl');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('46101807072',md5('konszfkapralka'),'kamil','jarosz',date'1992-11-19','lojasiewicza 4, krakow', false, 'kjarosz@uj.edu.pl');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('35052119448',md5(''),'dudu','',date'1988-05-15','gutenberga 4, krakow', false, 'dudu@dudu.tcs');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('20091508269',md5('calka'),'leonard','euler',date'1986-04-25','gdzie 88, warszawa', true, 'leuler@uj.edu.pl');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('62080713094',md5('pochodna'),'stefan','banach',date'1989-05-15','krakowska 45, krakow', false, 'sbanach@uj.edu.pl');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('91072415658',md5('styczna'),'stanislaw','mazur',date'1388-05-15','lwowska 24, katowice', false, 'smazur@uj.edu.pl');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('05270102489',md5('homologie'),'henry','poincare',date'1968-05-25','warszawska 2, paryz', false, 'hpoincare@uj.edu.pl');
-insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('50090903529',md5('homokliniczny'),'lew','tolstoj',date'1888-11-11','paryska 4, warszawa', false, 'ltolstoj@uj.edu.pl');
 insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('14082319730',md5('raskolnikow'),'michal','dostojewski',date'1788-01-15','katowicka 13, petersburg', false, null);
 insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('07220302192',md5('podwiazka'),'bernard','riemann',date'1868-12-21','mila 77, berlin', false, 'hpoincare@uj.edu.pl');
 insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('48021514432',md5('ulises'),'james','joyce',date'1921-03-20','dublinska 411, dublin', false, 'ltolstoj@uj.edu.pl');
 insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,adres,aptekarz,email) values ('50012913591',md5('badumbum'),'tim','gowers',date'1911-01-01','londynska 34, londyn', false, null);
+
+
+--LEKARZE
+insert into "dkm-healthcare".lekarze values ('50012913591',true);
+insert into "dkm-healthcare".lekarze values ('48021514432',true);
+insert into "dkm-healthcare".lekarze values ('07220302192',true);
+insert into "dkm-healthcare".lekarze values ('14082319730',false);
+
+--OSOBY
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('64050701526',md5('rozniczka'),'michal','swietek',date'1988-05-15','50012913591','gutenberga 4, krakow', false, 'michal.swietek@uj.edu.pl');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('46101807072',md5('konszfkapralka'),'kamil','jarosz',date'1992-11-19','07220302192','lojasiewicza 4, krakow', false, 'kjarosz@uj.edu.pl');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('35052119448',md5(''),'dudu','',date'1988-05-15','07220302192','gutenberga 4, krakow', false, 'dudu@dudu.tcs');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('20091508269',md5('calka'),'leonard','euler',date'1986-04-25','50012913591','gdzie 88, warszawa', true, 'leuler@uj.edu.pl');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('62080713094',md5('pochodna'),'stefan','banach',date'1989-05-15','07220302192','krakowska 45, krakow', false, 'sbanach@uj.edu.pl');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('91072415658',md5('styczna'),'stanislaw','mazur',date'1388-05-15','48021514432','lwowska 24, katowice', false, 'smazur@uj.edu.pl');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('05270102489',md5('homologie'),'henry','poincare',date'1968-05-25','48021514432','warszawska 2, paryz', false, 'hpoincare@uj.edu.pl');
+insert into "dkm-healthcare".osoby(pesel,haslo,imie,nazwisko,data_urodzenia,lekarz_rodzinny,adres,aptekarz,email) values ('50090903529',md5('homokliniczny'),'lew','tolstoj',date'1888-11-11','48021514432','paryska 4, warszawa', false, 'ltolstoj@uj.edu.pl');
+
 
 
 --PLACOWKI
@@ -48,39 +58,28 @@ insert into "dkm-healthcare".zabiegi(nazwa) values ('amputacja glowy');
 insert into "dkm-healthcare".zabiegi(nazwa) values ('amputacja lewego malego palca stopy');
 
 
---LEKARZE
-insert into "dkm-healthcare".lekarze values ('50012913591',true);
-insert into "dkm-healthcare".lekarze values ('48021514432',true);
-insert into "dkm-healthcare".lekarze values ('07220302192',true);
-insert into "dkm-healthcare".lekarze values ('14082319730',false);
-
 
 --OSOBY_INFO
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591' where pesel='64050701526';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='46101807072';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='35052119448';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591' where pesel='20091508269';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='62080713094';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432' where pesel='91072415658';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432', info='nie ma nerki' where pesel='05270102489';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432', info='ma 3 nogi' where pesel='50090903529';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='48021514432' where pesel='50090903529';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591' where pesel='07220302192';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='50012913591', info='obojnak' where pesel='48021514432';
-update "dkm-healthcare".osoby_info set  lekarz_rodzinny='07220302192' where pesel='50012913591';
+insert into "dkm-healthcare".osoby_info(pesel,info,aktualne) values ('50012913591','nogi brak',true);
+insert into "dkm-healthcare".osoby_info(pesel,info,aktualne) values ('48021514432','klepki 5. brak', true);
+insert into "dkm-healthcare".osoby_info(pesel,info,aktualne) values ('48021514432','klepki 4. brak', false);
+insert into "dkm-healthcare".osoby_info(pesel,info,aktualne) values ('07220302192','ziemniak zamiast serca',true);
+insert into "dkm-healthcare".osoby_info(pesel,info,aktualne) values ('14082319730','lubi frytki',false);
+insert into "dkm-healthcare".osoby_info(pesel,info,aktualne) values ('14082319730','lubi suche skarpetki',false);
+
 
 --OSOBY_ALERGIE
-insert into "dkm-healthcare".osoby_alergie values ('64050701526', 'brzydkie_dowody');
-insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'kąpiel');
-insert into "dkm-healthcare".osoby_alergie values ('35052119448', 'slonce');
-insert into "dkm-healthcare".osoby_alergie values ('05270102489', 'anglicy');
+insert into "dkm-healthcare".osoby_alergie(pesel,alergia,aktualne) values ('64050701526', 'brzydkie_dowody',true);
+insert into "dkm-healthcare".osoby_alergie(pesel,alergia,aktualne) values ('35052119448', 'kąpiel',true);
+insert into "dkm-healthcare".osoby_alergie(pesel,alergia,aktualne) values ('35052119448', 'slonce',true);
+insert into "dkm-healthcare".osoby_alergie(pesel,alergia,aktualne) values ('05270102489', 'anglicy',true);
 
 --OSOBY_LEKI
-insert into "dkm-healthcare".osoby_leki values ('91072415658', 'cukier');
-insert into "dkm-healthcare".osoby_leki values ('35052119448', 'herbata z cytryna, raz dziennie');
-insert into "dkm-healthcare".osoby_leki values ('46101807072', 'viagra');
-insert into "dkm-healthcare".osoby_leki values ('46101807072', 'jogurt');
-insert into "dkm-healthcare".osoby_leki values ('48021514432', 'rutinoscorbin, 3x dziennie');
+insert into "dkm-healthcare".osoby_leki(pesel,lek,od,"do") values ('91072415658', 'cukier',date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".osoby_leki(pesel,lek,od,"do") values ('35052119448', 'herbata z cytryna, raz dziennie',date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".osoby_leki(pesel,lek,od,"do") values ('46101807072', 'viagra',date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".osoby_leki(pesel,lek,od,"do") values ('46101807072', 'jogurt',date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".osoby_leki(pesel,lek,od,"do") values ('48021514432', 'rutinoscorbin, 3x dziennie',date'1986-04-25',date'1987-04-25');
 
 --PACJENCI_SPECJALISCI
 insert into "dkm-healthcare".pacjenci_specjalisci values ('64050701526', '48021514432');
@@ -142,14 +141,14 @@ insert into "dkm-healthcare".recepty(pesel, id_lekarz, lek) values ('91072415658
 
 --SKIEROWANIA
 
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('62080713094', '07220302192', 1);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('62080713094', '48021514432', 1);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('91072415658', '48021514432', 2);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('91072415658', '07220302192', 1);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('91072415658', '50012913591', 3);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('50090903529', '48021514432', 2);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('50090903529', '07220302192', 1);
-insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg) values ('14082319730', '48021514432', 3);
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('62080713094', '07220302192', 1,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('62080713094', '48021514432', 1,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('91072415658', '48021514432', 2,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('91072415658', '07220302192', 1,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('91072415658', '50012913591', 3,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('50090903529', '48021514432', 2,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('50090903529', '07220302192', 1,date'1986-04-25',date'1987-04-25');
+insert into "dkm-healthcare".skierowania(pesel, id_lekarz, id_zabieg, od,"do") values ('14082319730', '48021514432', 3,date'1986-04-25',date'1987-04-25');
 
 
 --LEKARZE_PLACOWKI
